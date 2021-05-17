@@ -25,12 +25,6 @@ export async function signAndSendTransaction(
     return failure(error);
   }
 
-  // transaction.setSigners(
-  //     // fee payed by the wallet owner
-  //     wallet.publicKey,
-  //     ...signers.map((s) => s.publicKey)
-  // );
-
   if (signers.length > 0) {
     transaction.partialSign(...signers);
   }
