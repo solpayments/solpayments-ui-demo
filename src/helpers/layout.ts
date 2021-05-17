@@ -8,6 +8,11 @@ export interface MerchantAccount {
   sponsorPubkey: PublicKey;
 }
 
+export interface Merchant {
+  address: PublicKey;
+  account: MerchantAccount;
+}
+
 export enum OrderStatus {
   Uninitialized = 0,
   Pending = 1,
