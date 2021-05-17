@@ -11,8 +11,7 @@ import { failure } from '../helpers/result';
 import type { WalletAdapter } from '../helpers/types';
 import { signAndSendTransaction } from '../helpers/transaction';
 import { Instruction, InstructionData, InstructionType } from '../helpers/instruction';
-
-const MERCHANT = 'merchant';
+import { MERCHANT } from '../helpers/constants';
 
 interface RegisterMerchantParams {
   connection: Connection;

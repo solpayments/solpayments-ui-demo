@@ -11,3 +11,4 @@ export const ORDER_ID = 'order_id';
 export const SECRET = 'secret';
 export const STRING = 'String';
 export const PDA_SEED = 'sol_payment_processor';
+export const MERCHANT = 'merchant';
