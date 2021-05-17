@@ -6,19 +6,10 @@
   import { SINGLE_GOSSIP } from './helpers/constants';
   import { getMerchantAccount } from './helpers/api';
   import { expressCheckout } from './instructions/express_checkout';
+  import Wallet from './components/wallet.svelte';
 
   export let name: string;
   export let programId: string;
-  let promise: Promise<void> | null;
-
-  function handleClick() {
-    promise = connectToWallet();
-  }
-
-  function handleDisconnect() {
-    promise = null;
-    adapter.update((_) => undefined);
-  }
 </script>
 
 <main>
@@ -28,23 +19,7 @@
     apps.
   </p>
 
-  {#if !$connected}
-    <button on:click={() => handleClick()}> Connect </button>
-  {/if}
-
-  {#if $connected}
-    <button on:click={() => handleDisconnect()}> Disconnect </button>
-  {/if}
-
-  {#if !$connected && promise != null}
-    {#await promise}
-      <p>loading</p>
-    {:then _pubkey}
-      <p style="color: green">Done</p>
-    {:catch error}
-      <p style="color: red">{error}</p>
-    {/await}
-  {/if}
+  <Wallet/>
 
   {#if $connected && $adapter?.publicKey}
     <p style="color: green">Connected to {$adapter.publicKey}</p>
