@@ -7,6 +7,7 @@
   import MerchantComponent from './components/Merchant.svelte';
   import ExpressCheckout from './components/Checkout.svelte';
   import Tokens from './components/Tokens.svelte';
+  import Orders from './components/Orders.svelte';
 
   export let name: string;
   export let orderId: string;
@@ -47,6 +48,10 @@
     {:else}
       <p style="color: red">Token account not found.</p>
     {/if}
+
+    <hr />
+
+    <Orders />
   {:else}
     <p style="color: red">Not connected</p>
   {/if}
