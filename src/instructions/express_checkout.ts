@@ -12,7 +12,10 @@ import { TOKEN_PROGRAM_ID } from '../helpers/solana';
 import type { Result } from '../helpers/result';
 import { failure } from '../helpers/result';
 import type { WalletAdapter } from '../helpers/types';
-import { signAndSendTransaction } from '../helpers/transaction';
+import {
+  awaitTransactionSignatureConfirmation,
+  signAndSendTransaction,
+} from '../helpers/transaction';
 import { Instruction, InstructionData, InstructionType } from '../helpers/instruction';
 import { MAX_SEED_LEN, PDA_SEED } from '../helpers/constants';
 
@@ -108,5 +111,15 @@ export const expressCheckout = async (
     return failure(error);
   }
 
-  return await signAndSendTransaction(connection, transaction, wallet, []);
+  const result = await signAndSendTransaction(connection, transaction, wallet, []);
+
+  if (result.value) {
+    awaitTransactionSignatureConfirmation(
+      result.value,
+      InstructionType.ExpressCheckout.toString(),
+      connection
+    );
+  }
+
+  return result;
 };
