@@ -1,7 +1,7 @@
 import type { PublicKey } from '@solana/web3.js';
 import Wallet from '@project-serum/sol-wallet-adapter';
 import type { WalletAdapter } from '../helpers/types';
-import { removeWallet, updateWallet } from '../stores/index';
+import { removeWallet, updateWallet } from '../stores';
 
 export const newWalletAdapter = (): WalletAdapter => {
   const providerUrl = 'https://www.sollet.io';

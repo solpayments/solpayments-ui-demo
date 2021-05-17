@@ -1,8 +1,6 @@
 <script lang="ts">
-  // import { Buffer } from 'buffer';
-  // (window as any).Buffer = Buffer;
   import { connectToWallet } from './helpers/wallet';
-  import { comp, store as adapter, setComp } from './stores';
+  import { walletConnected, store as adapter, setComp } from './stores';
   import { registerMerchant } from './instructions/register';
   import { Connection } from '@solana/web3.js';
   export let name: string;
@@ -17,7 +15,7 @@
 
   <button on:click={() => setComp()}> Connect </button>
 
-  {#if $comp}
+  {#if $walletConnected}
     {#await connectToWallet()}
       <p>loading</p>
     {:then _pubkey}
