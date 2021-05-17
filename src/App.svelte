@@ -1,6 +1,6 @@
 <script lang="ts">
   import { connectToWallet } from './helpers/wallet';
-  import { walletConnected, store as adapter, setWalletConnected } from './stores';
+  import { adapter, connected } from './stores';
   import { registerMerchant } from './instructions/register';
   import { Connection, PublicKey } from '@solana/web3.js';
   import { SINGLE_GOSSIP } from './helpers/constants';
@@ -9,6 +9,16 @@
 
   export let name: string;
   export let programId: string;
+  let promise: Promise<void> | null;
+
+  function handleClick() {
+    promise = connectToWallet();
+  }
+
+  function handleDisconnect() {
+    promise = null;
+    adapter.update((_) => undefined);
+  }
 </script>
 
 <main>
@@ -18,10 +28,16 @@
     apps.
   </p>
 
-  <button on:click={() => setWalletConnected()}> Connect </button>
+  {#if !$connected}
+    <button on:click={() => handleClick()}> Connect </button>
+  {/if}
 
-  {#if $walletConnected}
-    {#await connectToWallet()}
+  {#if $connected}
+    <button on:click={() => handleDisconnect()}> Disconnect </button>
+  {/if}
+
+  {#if !$connected && promise != null}
+    {#await promise}
       <p>loading</p>
     {:then _pubkey}
       <p style="color: green">Done</p>
@@ -30,9 +46,8 @@
     {/await}
   {/if}
 
-  {#if $adapter?.publicKey}
+  {#if $connected && $adapter?.publicKey}
     <p style="color: green">Connected to {$adapter.publicKey}</p>
-
     {#await getMerchantAccount({
       connection: new Connection('http://localhost:8899', SINGLE_GOSSIP),
       ownerKey: $adapter.publicKey,
