@@ -9,7 +9,7 @@
   import type { TokenFromApi } from '../helpers/solana';
 
   let tokensPromise: Promise<void | TokenFromApi[]> | null = null;
-  export let tokenTimeout = 2000;
+  export let tokenTimeout = 5000;
 
   const loadTokens = () => {
     if ($adapter && $adapter.publicKey) {
@@ -54,13 +54,13 @@
     {/if}
 
     {#if $userTokens}
-        {#each $userTokens as userToken}
-          <p>
-            {userToken.name} ||&nbsp;
-            {userToken.symbol} ||&nbsp;
-            {userToken.account.data.parsed.info.tokenAmount.uiAmountString}
-          </p>
-        {/each}
+      {#each $userTokens as userToken}
+        <p>
+          {userToken.name} ||&nbsp;
+          {userToken.symbol} ||&nbsp;
+          {userToken.account.data.parsed.info.tokenAmount.uiAmountString}
+        </p>
+      {/each}
     {/if}
   {/if}
 </main>

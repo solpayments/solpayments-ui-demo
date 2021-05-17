@@ -1,5 +1,4 @@
 <script lang="ts">
-  import { getContext } from 'svelte';
   import { derived } from 'svelte/store';
   import { Connection } from '@solana/web3.js';
   import {

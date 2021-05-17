@@ -1,5 +1,4 @@
 <script lang="ts">
-  import { getContext } from 'svelte';
   import { Connection, PublicKey } from '@solana/web3.js';
   import {
     adapter,
