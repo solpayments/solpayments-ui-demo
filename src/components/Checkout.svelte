@@ -9,6 +9,7 @@
   } from '../stores';
   import { expressCheckout } from '../instructions/express_checkout';
   import { SINGLE_GOSSIP } from '../helpers/constants';
+  import Explorer from './Explorer.svelte';
 
   const solanaNetwork: string = getContext('solanaNetwork');
   let checkoutPromise: Promise<void | string> | null = null;
@@ -16,12 +17,12 @@
     checkoutPromise =
       $adapter && $merchant
         ? expressCheckout({
-            amount: 100000,
+            amount: 1005000,
             buyerTokenAccount: new PublicKey('29cG2PtMwhuN3tsGZj4yHCcVJcaBKoJAtFXw9KBuBF9V'),
             connection: new Connection(solanaNetwork, SINGLE_GOSSIP),
             merchantAccount: $merchant.address,
             mint: new PublicKey('9nNBhx15F6WkT94u6uyusnWXmnxQqVro9gGdEX95Vmuu'),
-            orderId: 'order3',
+            orderId: 'order5',
             secret: 'hunter2',
             thisProgramId: $globalProgramId,
             wallet: $adapter,
@@ -43,7 +44,10 @@
       {#await checkoutPromise}
         <p>making payment</p>
       {:then txid}
-        <p style="color: green">sucess! {txid}</p>
+        <p style="color: green">sucess!</p>
+        {#if txid}
+          <Explorer transactionId={txid} networkUrl={solanaNetwork} />
+        {/if}
       {:catch error}
         <p style="color: red">{error}</p>
       {/await}
