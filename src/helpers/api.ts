@@ -3,9 +3,12 @@ import type { Connection } from '@solana/web3.js';
 import type { Result } from './result';
 import { failure, success } from './result';
 import { SINGLE } from './constants';
-import { MERCHANT_LAYOUT } from '../helpers/layout';
+import { MERCHANT_LAYOUT, ORDER_LAYOUT } from '../helpers/layout';
 import type { Merchant } from '../helpers/layout';
 import type { TokenApiResult } from '../helpers/solana';
+import type { OrderInfo } from '../helpers/layout';
+import { getUiAmount } from '../helpers/utils';
+import type { TokenMap } from '../stores/tokenRegistry';
 
 interface Base {
   connection: Connection;
@@ -19,6 +22,7 @@ interface GetMerchantAccountParams extends Base {
 interface GetOrderAccountParams extends Base {
   merchantKey: PublicKey;
   programId: string;
+  tokenRegistry: TokenMap;
 }
 
 interface GetTokenAccountParams extends Base {
@@ -51,26 +55,50 @@ export const getMerchantAccount = async (
   }
 };
 
+interface MintData {
+  decimals: number;
+  freezeAuthority: string | null;
+  isInitialized: boolean;
+  mintAuthority: string;
+  supply: string;
+}
+
 export const getOrderAccounts = async (
   params: GetOrderAccountParams
-): Promise<Result<Merchant | null>> => {
-  const { connection, merchantKey, programId } = params;
+): Promise<Result<OrderInfo[] | null>> => {
+  const { connection, merchantKey, programId, tokenRegistry } = params;
   const programIdKey = new PublicKey(programId);
 
   try {
     const result = await connection.getProgramAccounts(programIdKey, {
       commitment: SINGLE,
-      filters: [{ memcmp: { offset: 3, bytes: merchantKey.toBase58() } }],
+      filters: [{ memcmp: { offset: 17, bytes: merchantKey.toBase58() } }],
     });
 
-    if (result.length < 1) {
-      return success(null);
-    }
+    const rrr = await Promise.all(
+      result.map(async (item) => {
+        const orderData = ORDER_LAYOUT.decode(item.account.data);
+        const thisToken = tokenRegistry.get(orderData.mintPubkey.toBase58());
+        const decimals = thisToken ? thisToken.decimals : 0;
 
-    return success({
-      address: result[0].pubkey,
-      account: MERCHANT_LAYOUT.decode(result[0].account.data),
-    });
+        // await connection.getParsedAccountInfo(orderData.mintPubkey).then((yy) => {
+        //   console.log("mintxxxx >>>> ", (yy.value?.data.parsed.info));
+        // });
+
+        return {
+          ...item,
+          account: {
+            ...item.account,
+            data: {
+              ...orderData,
+              feeAmount: getUiAmount(orderData.feeAmount, decimals),
+            },
+          },
+        };
+      })
+    );
+
+    return success(rrr);
   } catch (error) {
     return failure(error);
   }
