@@ -1,6 +1,6 @@
 import { struct, Layout } from 'buffer-layout';
 import { publicKey, bool, i64, u8, u64, str } from '@project-serum/borsh';
-import type { PublicKey } from '@solana/web3.js';
+import type { AccountInfo, PublicKey } from '@solana/web3.js';
 
 export interface MerchantAccount {
   isInitialized: boolean;
@@ -34,6 +34,11 @@ export interface OrderAccount {
   feeAmount: number;
   orderId: string;
   secret: string;
+}
+
+export interface OrderInfo {
+  pubkey: PublicKey;
+  account: AccountInfo<OrderAccount>;
 }
 
 export const MERCHANT_LAYOUT = struct([
