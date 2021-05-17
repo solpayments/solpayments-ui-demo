@@ -18,9 +18,9 @@ export const awaitTransactionSignatureConfirmation = (
       txId,
       (result) => {
         if (result.err) {
-          updateTransaction(txId, TxStatus.Success);
-        } else {
           updateTransaction(txId, TxStatus.Fail);
+        } else {
+          updateTransaction(txId, TxStatus.Success);
         }
       },
       connection.commitment
@@ -31,12 +31,10 @@ export const awaitTransactionSignatureConfirmation = (
       connection
         .getSignatureStatus(txId)
         .then((result) => {
-          if (result.value) {
-            if (!result.value.err) {
-              updateTransaction(txId, TxStatus.Success);
-            } else {
-              updateTransaction(txId, TxStatus.Fail);
-            }
+          if (result.value && !result.value.err) {
+            updateTransaction(txId, TxStatus.Success);
+          } else {
+            updateTransaction(txId, TxStatus.Fail);
           }
         })
         .catch(() => {
