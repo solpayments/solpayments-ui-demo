@@ -2,10 +2,10 @@
   import { connectToWallet } from './helpers/wallet';
   import { walletConnected, store as adapter, setWalletConnected } from './stores';
   import { registerMerchant } from './instructions/register';
-  import { Connection } from '@solana/web3.js';
+  import { Connection, PublicKey } from '@solana/web3.js';
   import { SINGLE_GOSSIP } from './helpers/constants';
-  import { fetchProgramAccounts } from './helpers/api';
-  // import { MERCHANT_LAYOUT } from './helpers/layout';
+  import { getMerchantAccount } from './helpers/api';
+  import { expressCheckout } from './instructions/express_checkout';
 
   export let name: string;
   export let programId: string;
@@ -33,8 +33,9 @@
   {#if $adapter?.publicKey}
     <p style="color: green">Connected to {$adapter.publicKey}</p>
 
-    {#await fetchProgramAccounts({
+    {#await getMerchantAccount({
       connection: new Connection('http://localhost:8899', SINGLE_GOSSIP),
+      ownerKey: $adapter.publicKey,
       programId,
     })}
       <p>loading program accounts</p>
@@ -46,7 +47,27 @@
       <p style="color: red">{error}</p>
     {/await}
 
-    {#await registerMerchant({
+    <!-- {#await expressCheckout({
+      amount: 100000,
+      buyerTokenAccount: new PublicKey('29cG2PtMwhuN3tsGZj4yHCcVJcaBKoJAtFXw9KBuBF9V'),
+      connection: new Connection('http://localhost:8899', SINGLE_GOSSIP),
+      merchantAccount: new PublicKey('8JbSLSyLpsThT6zeXNk7CEYETtzxyBfEZQXWWuJtxrck'),
+      mint: new PublicKey('9nNBhx15F6WkT94u6uyusnWXmnxQqVro9gGdEX95Vmuu'),
+      orderId: 'order2',
+      secret: 'hunter2',
+      thisProgramId: programId,
+      wallet: $adapter,
+    })}
+      <p>loading</p>
+    {:then result}
+      {console.log('CHECKOUT >>>>>>>>>>> ', result)}
+      <p style="color: green">Done</p>
+    {:catch error}
+      {console.log('CHECKOUT errrrrrrrrrrrrrrr ?? ', error)}
+      <p style="color: red">{error}</p>
+    {/await} -->
+
+    <!-- {#await registerMerchant({
       connection: new Connection('http://localhost:8899', SINGLE_GOSSIP),
       thisProgramId: programId,
       wallet: $adapter,
@@ -58,7 +79,7 @@
     {:catch error}
       {console.log('errrrrrrrrrrrrrrr ?? ', error)}
       <p style="color: red">{error}</p>
-    {/await}
+    {/await} -->
   {:else}
     <p style="color: red">Not connected</p>
   {/if}
