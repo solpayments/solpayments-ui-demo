@@ -13,9 +13,6 @@ import { signAndSendTransaction } from '../helpers/transaction';
 import { Instruction, InstructionData, InstructionType } from '../helpers/instruction';
 
 const MERCHANT = 'merchant';
-// // const TOKEN_PROGRAM_ID = new PublicKey(
-// //   "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA"
-// // );
 
 interface RegisterMerchantParams {
   connection: Connection;
