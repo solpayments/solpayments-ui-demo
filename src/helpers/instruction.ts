@@ -58,7 +58,7 @@ export class InstructionData extends Layout {
           kind: STRUCT,
           fields: [
             [SEED, { kind: OPTION, type: STRING }],
-            [FEE, { kind: OPTION, type: STRING }],
+            [FEE, { kind: OPTION, type: U64 }],
             [DATA, { kind: OPTION, type: STRING }],
           ],
         },
