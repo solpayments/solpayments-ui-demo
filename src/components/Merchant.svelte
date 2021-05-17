@@ -7,6 +7,7 @@
     connected,
     merchantStore as merchant,
     programId as globalProgramId,
+    solanaNetwork,
   } from '../stores';
   import { getMerchantAccount } from '../helpers/api';
   import { registerMerchant } from '../instructions/register';
@@ -14,7 +15,6 @@
   import TrasactionResult from './TrasactionResult.svelte';
   import type { Adapter } from '../stores';
 
-  const solanaNetwork: string = getContext('solanaNetwork');
   export let merchantTimeout = 2000;
   let registrationProcessing = false;
   let registrationResultTxId: string | undefined = undefined;
@@ -23,7 +23,7 @@
     if (connectedWallet && connectedWallet.publicKey) {
       // this promise tries to get the merchant account
       return getMerchantAccount({
-        connection: new Connection(solanaNetwork, SINGLE_GOSSIP),
+        connection: new Connection($solanaNetwork, SINGLE_GOSSIP),
         ownerKey: connectedWallet.publicKey,
         programId: $globalProgramId,
       }).then((result) => {
@@ -59,7 +59,7 @@
     registrationProcessing = true;
     registrationPromise = $adapter
       ? registerMerchant({
-          connection: new Connection(solanaNetwork, MAX),
+          connection: new Connection($solanaNetwork, MAX),
           thisProgramId: $globalProgramId,
           wallet: $adapter,
         })

@@ -26,6 +26,8 @@ export const connected = derived(adapter, ($adapter) => {
 export const merchantStore = writable<Merchant | null>(null);
 /** the user's tokens */
 export const userTokens = writable<UserToken[]>([]);
+/** the network URL */
+export const solanaNetwork = writable<string>('https://api.mainnet-beta.solana.com');
 /** the immutable program id */
 export const programId = writable<string>('8RqbzUupLSSdTGCzkZsFjUwUupWuu2Jph5x4LeU1wV7C');
 

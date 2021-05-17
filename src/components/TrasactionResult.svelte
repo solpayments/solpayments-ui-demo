@@ -1,9 +1,8 @@
 <script lang="ts">
-  import { getContext } from 'svelte';
   import Explorer from './Explorer.svelte';
+  import { solanaNetwork } from '../stores';
   import { transactionsMap, TxStatus } from '../stores/transaction';
 
-  const solanaNetwork: string = getContext('solanaNetwork');
   export let txId: string | void;
   export let sideEffect: Promise<void> | null = null;
 </script>
@@ -26,6 +25,6 @@
     {:else}
       <p>Pending!</p>
     {/if}
-    <Explorer transactionId={txId} networkUrl={solanaNetwork} />
+    <Explorer transactionId={txId} networkUrl={$solanaNetwork} />
   {/if}
 </main>

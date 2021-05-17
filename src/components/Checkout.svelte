@@ -6,6 +6,7 @@
     connected,
     merchantStore as merchant,
     programId as globalProgramId,
+    solanaNetwork,
     userTokens,
   } from '../stores';
   import type { UserToken } from '../stores';
@@ -13,7 +14,6 @@
   import { MAX } from '../helpers/constants';
   import TrasactionResult from './TrasactionResult.svelte';
 
-  const solanaNetwork: string = getContext('solanaNetwork');
   let checkoutPromise: Promise<void | string> | null = null;
   let checkoutProcessing = false;
   let checkoutResultTxId: string | undefined = undefined;
@@ -29,7 +29,7 @@
         ? expressCheckout({
             amount: amount * 10 ** buyerToken.account.data.parsed.info.tokenAmount.decimals,
             buyerTokenAccount: buyerToken.pubkey,
-            connection: new Connection(solanaNetwork, MAX),
+            connection: new Connection($solanaNetwork, MAX),
             merchantAccount: $merchant.address,
             mint: new PublicKey(buyerToken.account.data.parsed.info.mint),
             orderId,

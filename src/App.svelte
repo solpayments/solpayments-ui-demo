@@ -1,7 +1,7 @@
 <script lang="ts">
   import { derived } from 'svelte/store';
-  import { setContext, onMount } from 'svelte';
-  import { connected, userTokens } from './stores';
+  import { onMount } from 'svelte';
+  import { connected, solanaNetwork, userTokens } from './stores';
   import { getTokenRegistry } from './stores/tokenRegistry';
   import Wallet from './components/Wallet.svelte';
   import MerchantComponent from './components/Merchant.svelte';
@@ -24,8 +24,7 @@
     return null;
   });
 
-  setContext('solanaNetwork', 'http://localhost:8899');
-
+  solanaNetwork.update(() => 'http://localhost:8899');
   onMount(async () => getTokenRegistry());
 </script>
 

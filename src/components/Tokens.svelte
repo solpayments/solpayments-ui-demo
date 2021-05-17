@@ -1,21 +1,20 @@
 <script lang="ts">
-  import { getContext, onMount } from 'svelte';
+  import { onMount } from 'svelte';
   import { Connection } from '@solana/web3.js';
-  import { adapter, connected, userTokens, updateUserTokens } from '../stores';
+  import { adapter, connected, userTokens, solanaNetwork, updateUserTokens } from '../stores';
   import { tokenMap } from '../stores/tokenRegistry';
   import { fetchTokenAccounts } from '../helpers/api';
   import { SINGLE_GOSSIP } from '../helpers/constants';
   import { TOKEN_PROGRAM_ID } from '../helpers/solana';
   import type { TokenFromApi } from '../helpers/solana';
 
-  const solanaNetwork: string = getContext('solanaNetwork');
   let tokensPromise: Promise<void | TokenFromApi[]> | null = null;
   export let tokenTimeout = 2000;
 
   const loadTokens = () => {
     if ($adapter && $adapter.publicKey) {
       tokensPromise = fetchTokenAccounts({
-        connection: new Connection(solanaNetwork, SINGLE_GOSSIP),
+        connection: new Connection($solanaNetwork, SINGLE_GOSSIP),
         ownerKey: $adapter.publicKey,
         programId: TOKEN_PROGRAM_ID,
       }).then((result) => {
