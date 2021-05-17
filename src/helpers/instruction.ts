@@ -1,12 +1,12 @@
 import type { Schema } from 'borsh';
 import { Layout } from './borsh';
 import type { Dictionary } from './types';
-import { ENUM, INSTRUCTION, STRUCT } from './constants';
+import { AMOUNT, ENUM, INSTRUCTION, ORDER_ID, SECRET, STRING, STRUCT, U64 } from './constants';
 
 export enum InstructionType {
   RegisterMerchant = 'RegisterMerchant',
-  // ExpressCheckout = 'ExpressCheckout',
-  // Withdraw = 'Withdraw',
+  ExpressCheckout = 'ExpressCheckout',
+  Withdraw = 'Withdraw',
 }
 
 export class Instruction extends Layout {
@@ -23,7 +23,11 @@ export class Instruction extends Layout {
         {
           kind: ENUM,
           field: INSTRUCTION,
-          values: [[InstructionType.RegisterMerchant, [len]]],
+          values: [
+            [InstructionType.RegisterMerchant, [len]],
+            [InstructionType.ExpressCheckout, [len]],
+            [InstructionType.Withdraw, [len]],
+          ],
         },
       ],
     ]);
@@ -35,6 +39,28 @@ export class Instruction extends Layout {
 export class InstructionData extends Layout {
   static schema: Record<InstructionType, Schema> = {
     [InstructionType.RegisterMerchant]: new Map([
+      [
+        InstructionData,
+        {
+          kind: STRUCT,
+          fields: [],
+        },
+      ],
+    ]),
+    [InstructionType.ExpressCheckout]: new Map([
+      [
+        InstructionData,
+        {
+          kind: STRUCT,
+          fields: [
+            [AMOUNT, U64],
+            [ORDER_ID, [STRING]],
+            [SECRET, [STRING]],
+          ],
+        },
+      ],
+    ]),
+    [InstructionType.Withdraw]: new Map([
       [
         InstructionData,
         {
