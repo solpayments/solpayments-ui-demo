@@ -15,6 +15,7 @@
   import type { Adapter } from '../stores';
 
   const solanaNetwork: string = getContext('solanaNetwork');
+  export let merchantTimeout = 2000;
   let registrationProcessing = false;
   let registrationResultTxId: string | undefined = undefined;
 
@@ -42,7 +43,7 @@
     while (!$merchant) {
       fetchMerchant(connectedWallet);
       // sleep
-      await new Promise((r) => setTimeout(r, 2000));
+      await new Promise((r) => setTimeout(r, merchantTimeout));
     }
   };
 
