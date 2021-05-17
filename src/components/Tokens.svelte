@@ -1,7 +1,7 @@
 <script lang="ts">
   import { getContext } from 'svelte';
   import { Connection } from '@solana/web3.js';
-  import { adapter, connected, userTokens } from '../stores';
+  import { adapter, connected, tokenMap, userTokens, updateUserTokens } from '../stores';
   import { fetchTokenAccounts } from '../helpers/api';
   import { SINGLE_GOSSIP } from '../helpers/constants';
   import { TOKEN_PROGRAM_ID } from '../helpers/solana';
@@ -21,7 +21,7 @@
         if (result.error) {
           throw result.error;
         } else {
-          userTokens.update(() => result.value.value);
+          updateUserTokens(result.value.value, $tokenMap);
         }
       });
     }
@@ -44,8 +44,8 @@
       <table>
         {#each $userTokens as userToken}
           <tr>
-            <td>{userToken.pubkey}</td>
-            <td>{userToken.account.data.parsed.info.mint}</td>
+            <td>{userToken.name}</td>
+            <td>{userToken.symbol}</td>
             <td>{userToken.account.data.parsed.info.tokenAmount.uiAmountString}</td>
           </tr>
         {/each}
