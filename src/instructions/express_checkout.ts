@@ -1,3 +1,4 @@
+import { Buffer } from 'buffer';
 import type { Connection, TransactionSignature } from '@solana/web3.js';
 import {
   PublicKey,
