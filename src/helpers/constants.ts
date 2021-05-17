@@ -9,6 +9,6 @@ export const AMOUNT = 'amount';
 export const U64 = 'u64';
 export const ORDER_ID = 'order_id';
 export const SECRET = 'secret';
-export const STRING = 'String';
+export const STRING = 'string';
 export const PDA_SEED = 'sol_payment_processor';
 export const MERCHANT = 'merchant';
