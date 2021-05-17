@@ -9,7 +9,10 @@ import {
 import type { Result } from '../helpers/result';
 import { failure } from '../helpers/result';
 import type { WalletAdapter } from '../helpers/types';
-import { signAndSendTransaction } from '../helpers/transaction';
+import {
+  awaitTransactionSignatureConfirmation,
+  signAndSendTransaction,
+} from '../helpers/transaction';
 import { Instruction, InstructionData, InstructionType } from '../helpers/instruction';
 import { MERCHANT } from '../helpers/constants';
 
@@ -80,5 +83,15 @@ export const registerMerchant = async (
     return failure(error);
   }
 
-  return await signAndSendTransaction(connection, transaction, wallet, []);
+  const result = await signAndSendTransaction(connection, transaction, wallet, []);
+
+  if (result.value) {
+    awaitTransactionSignatureConfirmation(
+      result.value,
+      InstructionType.RegisterMerchant.toString(),
+      connection
+    );
+  }
+
+  return result;
 };

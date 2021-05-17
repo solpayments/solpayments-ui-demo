@@ -2,6 +2,49 @@ import type { Account, Connection, Transaction, TransactionSignature } from '@so
 import type { WalletAdapter } from './types';
 import { failure, success, Result } from './result';
 import { MAX, SINGLE } from './constants';
+import { addTransaction, updateTransaction, TxStatus } from '../stores/transaction';
+
+export const awaitTransactionSignatureConfirmation = (
+  txId: TransactionSignature,
+  name: string,
+  connection: Connection,
+  timeout = 50000
+): void => {
+  // first register this transaction
+  addTransaction(txId, name);
+  // then set the callback
+  try {
+    connection.onSignature(
+      txId,
+      (result) => {
+        if (result.err) {
+          updateTransaction(txId, TxStatus.Success);
+        } else {
+          updateTransaction(txId, TxStatus.Fail);
+        }
+      },
+      connection.commitment
+    );
+  } catch {
+    // fallback where we manually get this thing
+    setTimeout(() => {
+      connection
+        .getSignatureStatus(txId)
+        .then((result) => {
+          if (result.value) {
+            if (!result.value.err) {
+              updateTransaction(txId, TxStatus.Success);
+            } else {
+              updateTransaction(txId, TxStatus.Fail);
+            }
+          }
+        })
+        .catch(() => {
+          /** do nothing?? */
+        });
+    }, timeout);
+  }
+};
 
 /**
  * @param connection - the connection to the blockchain
