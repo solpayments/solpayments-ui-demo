@@ -7,7 +7,7 @@ import type { TokenMap } from './tokenRegistry';
 
 export type Adapter = WalletAdapter | undefined;
 
-interface UserToken extends TokenFromApi {
+export interface UserToken extends TokenFromApi {
   name?: string;
   icon?: string;
   symbol?: string;
