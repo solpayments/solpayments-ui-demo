@@ -54,15 +54,13 @@
     {/if}
 
     {#if $userTokens}
-      <table>
         {#each $userTokens as userToken}
-          <tr>
-            <td>{userToken.name}</td>
-            <td>{userToken.symbol}</td>
-            <td>{userToken.account.data.parsed.info.tokenAmount.uiAmountString}</td>
-          </tr>
+          <p>
+            {userToken.name} ||&nbsp;
+            {userToken.symbol} ||&nbsp;
+            {userToken.account.data.parsed.info.tokenAmount.uiAmountString}
+          </p>
         {/each}
-      </table>
     {/if}
   {/if}
 </main>
