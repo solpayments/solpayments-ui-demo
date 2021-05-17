@@ -6,9 +6,9 @@ export enum TxStatus {
   Unknown = 'u',
 }
 
-interface TxInfo {
+export interface TxInfo {
   name: string;
-  success: TxStatus;
+  status: TxStatus;
 }
 
 export type TxMap = Map<string, TxInfo>;
@@ -24,7 +24,7 @@ export const addTransaction = (txId: string, name: string): void => {
       // don't update an already existing transaction
       return existing;
     }
-    return existing.set(txId, { name, success: TxStatus.Unknown });
+    return existing.set(txId, { name, status: TxStatus.Unknown });
   });
 };
 
@@ -34,7 +34,7 @@ export const updateTransaction = (txId: string, status: TxStatus): void => {
     const tx = existing.get(txId);
     if (tx) {
       // only update an existing transaction
-      existing.set(txId, { ...tx, success: status });
+      existing.set(txId, { ...tx, status });
     }
     return existing;
   });
