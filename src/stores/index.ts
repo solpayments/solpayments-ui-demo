@@ -1,11 +1,13 @@
 import { writable } from 'svelte/store';
 import type { WalletAdapter } from '../helpers/types';
 
-export const store = writable<WalletAdapter | undefined>(undefined);
+/** the wallet adapter from sollet, etc */
+export const adapter = writable<WalletAdapter | undefined>(undefined);
+/** is the wallet connected? */
 export const walletConnected = writable<boolean>(false);
 
 export const updateWallet = (details: WalletAdapter): void => {
-  store.update((_) => {
+  adapter.update((_) => {
     return details;
   });
 };
@@ -15,6 +17,6 @@ export const setWalletConnected = (): void => {
 };
 
 export const removeWallet = (): void => {
-  store.update((_) => undefined);
+  adapter.update((_) => undefined);
   walletConnected.update((_) => false);
 };
