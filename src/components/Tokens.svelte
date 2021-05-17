@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { getContext } from 'svelte';
+  import { getContext, onMount } from 'svelte';
   import { Connection } from '@solana/web3.js';
   import { adapter, connected, userTokens, updateUserTokens } from '../stores';
   import { tokenMap } from '../stores/tokenRegistry';
@@ -9,8 +9,8 @@
   import type { TokenFromApi } from '../helpers/solana';
 
   const solanaNetwork: string = getContext('solanaNetwork');
-
   let tokensPromise: Promise<void | TokenFromApi[]> | null = null;
+  export let tokenTimeout = 2000;
 
   const loadTokens = () => {
     if ($adapter && $adapter.publicKey) {
@@ -19,6 +19,7 @@
         ownerKey: $adapter.publicKey,
         programId: TOKEN_PROGRAM_ID,
       }).then((result) => {
+        tokensPromise = null;
         if (result.error) {
           throw result.error;
         } else {
@@ -27,11 +28,21 @@
       });
     }
   };
+
+  const continousTokenReload = async () => {
+    loadTokens();
+    await new Promise((r) => setTimeout(r, tokenTimeout));
+    continousTokenReload();
+  };
+
+  onMount(async () => {
+    continousTokenReload();
+  });
 </script>
 
 <main>
   {#if $connected}
-    <button on:click={() => loadTokens()}> Load Tokens </button>
+    <button on:click={() => loadTokens()}> Refresh Tokens </button>
 
     {#if tokensPromise}
       {#await tokensPromise}
@@ -39,6 +50,8 @@
       {:catch error}
         <p style="color: red">{error}</p>
       {/await}
+    {:else}
+      <p>not refreshing tokens</p>
     {/if}
 
     {#if $userTokens}
