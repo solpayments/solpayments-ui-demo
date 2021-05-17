@@ -6,6 +6,7 @@
     connected,
     merchantStore as merchant,
     programId as globalProgramId,
+    userTokens,
   } from '../stores';
   import { expressCheckout } from '../instructions/express_checkout';
   import { SINGLE_GOSSIP } from '../helpers/constants';
@@ -15,14 +16,14 @@
   let checkoutPromise: Promise<void | string> | null = null;
   const handleCheckoutPromise = () => {
     checkoutPromise =
-      $adapter && $merchant
+      $adapter && $merchant && $userTokens.length > 0
         ? expressCheckout({
-            amount: 1005000,
-            buyerTokenAccount: new PublicKey('29cG2PtMwhuN3tsGZj4yHCcVJcaBKoJAtFXw9KBuBF9V'),
+            amount: 17 * 10 ** $userTokens[0].account.data.parsed.info.tokenAmount.decimals,
+            buyerTokenAccount: $userTokens[0].pubkey,
             connection: new Connection(solanaNetwork, SINGLE_GOSSIP),
             merchantAccount: $merchant.address,
-            mint: new PublicKey('9nNBhx15F6WkT94u6uyusnWXmnxQqVro9gGdEX95Vmuu'),
-            orderId: 'order5',
+            mint: new PublicKey($userTokens[0].account.data.parsed.info.mint),
+            orderId: 'order2',
             secret: 'hunter2',
             thisProgramId: $globalProgramId,
             wallet: $adapter,
@@ -38,7 +39,11 @@
 
 <main>
   {#if $connected && $merchant}
-    <button on:click={() => handleCheckoutPromise()}> Pay Now </button>
+    {#if $userTokens.length > 0}
+      <button on:click={() => handleCheckoutPromise()}> Pay Now </button>
+    {:else}
+      <p>select a token sir</p>
+    {/if}
 
     {#if checkoutPromise}
       {#await checkoutPromise}
