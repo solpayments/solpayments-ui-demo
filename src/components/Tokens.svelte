@@ -1,7 +1,8 @@
 <script lang="ts">
   import { getContext } from 'svelte';
   import { Connection } from '@solana/web3.js';
-  import { adapter, connected, tokenMap, userTokens, updateUserTokens } from '../stores';
+  import { adapter, connected, userTokens, updateUserTokens } from '../stores';
+  import { tokenMap } from '../stores/tokenRegistry';
   import { fetchTokenAccounts } from '../helpers/api';
   import { SINGLE_GOSSIP } from '../helpers/constants';
   import { TOKEN_PROGRAM_ID } from '../helpers/solana';

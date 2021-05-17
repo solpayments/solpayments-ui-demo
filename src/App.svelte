@@ -1,6 +1,7 @@
 <script lang="ts">
-  import { setContext } from 'svelte';
+  import { setContext, onMount } from 'svelte';
   import { connected } from './stores';
+  import { getTokenRegistry } from './stores/tokenRegistry';
   import Wallet from './components/Wallet.svelte';
   import MerchantComponent from './components/Merchant.svelte';
   import ExpressCheckout from './components/Checkout.svelte';
@@ -9,6 +10,8 @@
   export let name: string;
 
   setContext('solanaNetwork', 'http://localhost:8899');
+
+  onMount(async () => getTokenRegistry());
 </script>
 
 <main>
