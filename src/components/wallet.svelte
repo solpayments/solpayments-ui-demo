@@ -7,11 +7,11 @@
     promise = connectToWallet().then(() => {
       promise = null;
     });
-  }
+  };
   const handleDisconnect = () => {
     promise = null;
-    adapter.update((_) => undefined);
-  }
+    adapter.update(() => undefined);
+  };
 </script>
 
 <main>

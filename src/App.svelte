@@ -19,7 +19,7 @@
     apps.
   </p>
 
-  <Wallet/>
+  <Wallet />
 
   {#if $connected && $adapter?.publicKey}
     <p style="color: green">Connected to {$adapter.publicKey}</p>
