@@ -1,5 +1,5 @@
 declare module 'buffer-layout' {
-  export interface Layout<T=any> {
+  export interface Layout<T = any> {
     span: number;
     property?: string;
     decode(b: Buffer, offset?: number): T;
