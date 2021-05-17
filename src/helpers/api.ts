@@ -57,7 +57,7 @@ export const getMerchantAccount = async (
 
 export const getOrderAccounts = async (
   params: GetOrderAccountParams
-): Promise<Result<OrderInfo[] | null>> => {
+): Promise<Result<OrderInfo[]>> => {
   const { connection, merchantKey, programId, tokenRegistry } = params;
   const programIdKey = new PublicKey(programId);
 
@@ -67,7 +67,7 @@ export const getOrderAccounts = async (
       filters: [{ memcmp: { offset: 17, bytes: merchantKey.toBase58() } }],
     });
 
-    const rrr = await Promise.all(
+    return success(await Promise.all(
       result.map(async (item) => {
         const orderData = ORDER_LAYOUT.decode(item.account.data);
         const thisToken = tokenRegistry.get(orderData.mintPubkey.toBase58());
@@ -99,9 +99,7 @@ export const getOrderAccounts = async (
           },
         };
       })
-    );
-
-    return success(rrr);
+    ));
   } catch (error) {
     return failure(error);
   }
