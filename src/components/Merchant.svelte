@@ -10,7 +10,7 @@
   } from '../stores';
   import { getMerchantAccount } from '../helpers/api';
   import { registerMerchant } from '../instructions/register';
-  import { SINGLE_GOSSIP } from '../helpers/constants';
+  import { MAX, SINGLE_GOSSIP } from '../helpers/constants';
   import TrasactionResult from './TrasactionResult.svelte';
   import type { Adapter } from '../stores';
 
@@ -59,7 +59,7 @@
     registrationProcessing = true;
     registrationPromise = $adapter
       ? registerMerchant({
-          connection: new Connection(solanaNetwork, SINGLE_GOSSIP),
+          connection: new Connection(solanaNetwork, MAX),
           thisProgramId: $globalProgramId,
           wallet: $adapter,
         })
