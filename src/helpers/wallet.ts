@@ -1,7 +1,7 @@
 import type { PublicKey } from '@solana/web3.js';
 import Wallet from '@project-serum/sol-wallet-adapter';
 import type { WalletAdapter } from '../helpers/types';
-import { removeWallet, adapter } from '../stores';
+import { adapter } from '../stores';
 
 export const newWalletAdapter = (): WalletAdapter => {
   const providerUrl = 'https://www.sollet.io';
@@ -14,7 +14,7 @@ export const newWalletAdapter = (): WalletAdapter => {
   );
   wallet.on('disconnect', () => {
     console.log('Disconnected');
-    removeWallet();
+    adapter.update((_) => undefined);
   });
 
   return wallet;
