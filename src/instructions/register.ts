@@ -37,35 +37,7 @@ export const registerMerchant = async (
   const seed = params.seed || MERCHANT;
   const programIdKey = new PublicKey(thisProgramId);
   const merchant_pubkey = await PublicKey.createWithSeed(wallet.publicKey, seed, programIdKey);
-
   const transaction = new Transaction({ feePayer: wallet.publicKey });
-  // const transaction = new Transaction();
-
-  // const signers: Account[] = [];
-  // const someAccount = new Account();
-  // try {
-  //   transaction.add(
-  //     // SystemProgram.createAccount({
-  //     //   fromPubkey: wallet.publicKey,
-  //     //   newAccountPubkey: someAccount.publicKey,
-  //     //   lamports:
-  //     //     (await connection.getMinimumBalanceForRentExemption(
-  //     //       1650,
-  //     //       "singleGossip"
-  //     //     )),
-  //     //   space: 1650,
-  //     //   programId: programIdKey,
-  //     // })
-  //     SystemProgram.transfer({
-  //       fromPubkey: wallet.publicKey,
-  //       toPubkey: new PublicKey('3p2N9GkcbFcRQvL3UUpzJBPtjjbdjSjAw2YypPP83y38'),
-  //       lamports: 2000000
-  //     })
-  //   );
-  // } catch (error) {
-  //   return failure(error);
-  // }
-  // signers.push(someAccount);
 
   try {
     transaction.add(
