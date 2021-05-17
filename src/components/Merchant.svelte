@@ -14,6 +14,8 @@
   import TrasactionResult from './TrasactionResult.svelte';
 
   const solanaNetwork: string = getContext('solanaNetwork');
+  let registrationProcessing = false;
+  let registrationResultTxId: string | undefined = undefined;
 
   const merchantPromise = derived(adapter, ($adapter) => {
     if ($adapter && $adapter.publicKey) {
@@ -38,17 +40,23 @@
 
   let registrationPromise: Promise<void | string> | null = null;
   const handleRegistrationPromise = () => {
+    registrationProcessing = true;
     registrationPromise = $adapter
       ? registerMerchant({
           connection: new Connection(solanaNetwork, SINGLE_GOSSIP),
           thisProgramId: $globalProgramId,
           wallet: $adapter,
-        }).then((result) => {
-          if (result.error) {
-            throw result.error;
-          }
-          return result.value;
         })
+          .then((result) => {
+            if (result.error) {
+              throw result.error;
+            }
+            registrationResultTxId = result.value;
+            return result.value;
+          })
+          .finally(() => {
+            registrationProcessing = false;
+          })
       : null;
   };
 </script>
@@ -64,8 +72,10 @@
   {#if $connected}
     {#if $merchant}
       <p style="color: green">Merchant Address: {$merchant.address}</p>
-    {:else}
-      <button on:click={() => handleRegistrationPromise()}> Register Merchant </button>
+    {:else if !registrationResultTxId}
+      <button on:click={() => handleRegistrationPromise()} disabled={registrationProcessing}>
+        {#if registrationProcessing}Registering Merchant{:else}Register Merchant{/if}
+      </button>
     {/if}
   {/if}
 
