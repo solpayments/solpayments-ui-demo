@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { setContext } from 'svelte'
   import { connectToWallet } from './helpers/wallet';
   import { adapter, connected } from './stores';
   import { registerMerchant } from './instructions/register';
@@ -6,10 +7,13 @@
   import { SINGLE_GOSSIP } from './helpers/constants';
   import { getMerchantAccount } from './helpers/api';
   import { expressCheckout } from './instructions/express_checkout';
-  import Wallet from './components/wallet.svelte';
+  import Wallet from './components/Wallet.svelte';
+  import MerchantComponent from './components/Merchant.svelte';
 
   export let name: string;
   export let programId: string;
+
+  setContext('solanaNetwork', 'http://localhost:8899');
 </script>
 
 <main>
@@ -21,8 +25,10 @@
 
   <Wallet />
 
+  <MerchantComponent />
+
   {#if $connected && $adapter?.publicKey}
-    <p style="color: green">Connected to {$adapter.publicKey}</p>
+    <!-- <p style="color: green">Connected to {$adapter.publicKey}</p>
     {#await getMerchantAccount({
       connection: new Connection('http://localhost:8899', SINGLE_GOSSIP),
       ownerKey: $adapter.publicKey,
@@ -35,7 +41,7 @@
     {:catch error}
       {console.log('errrrrrrrrrrrrrrr ?? ', error)}
       <p style="color: red">{error}</p>
-    {/await}
+    {/await} -->
 
     <!-- {#await expressCheckout({
       amount: 100000,
