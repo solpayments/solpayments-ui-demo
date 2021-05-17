@@ -10,11 +10,15 @@
   } from '../stores';
   import { expressCheckout } from '../instructions/express_checkout';
   import { SINGLE_GOSSIP } from '../helpers/constants';
-  import Explorer from './Explorer.svelte';
+  import TrasactionResult from './TrasactionResult.svelte';
 
   const solanaNetwork: string = getContext('solanaNetwork');
   let checkoutPromise: Promise<void | string> | null = null;
+  let checkoutProcessing = false;
+  let checkoutResultTxId: string | undefined = undefined;
+
   const handleCheckoutPromise = () => {
+    checkoutProcessing = true;
     checkoutPromise =
       $adapter && $merchant && $userTokens.length > 0
         ? expressCheckout({
@@ -23,16 +27,21 @@
             connection: new Connection(solanaNetwork, SINGLE_GOSSIP),
             merchantAccount: $merchant.address,
             mint: new PublicKey($userTokens[0].account.data.parsed.info.mint),
-            orderId: 'order2',
+            orderId: '4',
             secret: 'hunter2',
             thisProgramId: $globalProgramId,
             wallet: $adapter,
-          }).then((result) => {
-            if (result.error) {
-              throw result.error;
-            }
-            return result.value;
           })
+            .then((result) => {
+              if (result.error) {
+                throw result.error;
+              }
+              checkoutResultTxId = result.value;
+              return result.value;
+            })
+            .finally(() => {
+              checkoutProcessing = false;
+            })
         : null;
   };
 </script>
@@ -40,7 +49,11 @@
 <main>
   {#if $connected && $merchant}
     {#if $userTokens.length > 0}
-      <button on:click={() => handleCheckoutPromise()}> Pay Now </button>
+      {#if !checkoutResultTxId}
+        <button on:click={() => handleCheckoutPromise()} disabled={checkoutProcessing}>
+          {#if checkoutProcessing}Processing{:else}Pay Now{/if}
+        </button>
+      {/if}
     {:else}
       <p>select a token sir</p>
     {/if}
@@ -48,11 +61,8 @@
     {#if checkoutPromise}
       {#await checkoutPromise}
         <p>making payment</p>
-      {:then txid}
-        <p style="color: green">sucess!</p>
-        {#if txid}
-          <Explorer transactionId={txid} networkUrl={solanaNetwork} />
-        {/if}
+      {:then txId}
+        <TrasactionResult {txId} />
       {:catch error}
         <p style="color: red">{error}</p>
       {/await}
