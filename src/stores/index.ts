@@ -5,7 +5,7 @@ import type { TokenFromApi } from '../helpers/solana';
 import { abbreviateAddress } from '../helpers/utils';
 import type { TokenMap } from './tokenRegistry';
 
-type Adapter = WalletAdapter | undefined;
+export type Adapter = WalletAdapter | undefined;
 
 interface UserToken extends TokenFromApi {
   name?: string;
