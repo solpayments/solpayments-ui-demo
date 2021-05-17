@@ -4,6 +4,7 @@
   import Wallet from './components/Wallet.svelte';
   import MerchantComponent from './components/Merchant.svelte';
   import ExpressCheckout from './components/Checkout.svelte';
+  import Tokens from './components/Tokens.svelte';
 
   export let name: string;
 
@@ -23,6 +24,8 @@
     <MerchantComponent />
 
     <ExpressCheckout />
+
+    <Tokens />
   {:else}
     <p style="color: red">Not connected</p>
   {/if}
