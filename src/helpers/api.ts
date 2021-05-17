@@ -1,31 +1,29 @@
 import { PublicKey } from '@solana/web3.js';
-import type { AccountInfo, Connection, ParsedAccountData } from '@solana/web3.js';
+import type { Connection } from '@solana/web3.js';
 import type { Result } from './result';
 import { failure, success } from './result';
 import { SINGLE } from './constants';
 import { MERCHANT_LAYOUT } from '../helpers/layout';
 import type { Merchant } from '../helpers/layout';
+import type { TokenApiResult } from '../helpers/solana';
 
-interface GetProgramAccountsParams {
+interface Base {
   connection: Connection;
-  programId: string;
 }
 
-type FetchProgramAccountsResult = {
-  pubkey: PublicKey;
-  account: AccountInfo<Buffer | ParsedAccountData>;
-};
-
-interface GetMerchantAccountParams {
-  connection: Connection;
+interface GetMerchantAccountParams extends Base {
   ownerKey: PublicKey;
   programId: string;
 }
 
-interface GetOrderAccountParams {
-  connection: Connection;
+interface GetOrderAccountParams extends Base {
   merchantKey: PublicKey;
   programId: string;
+}
+
+interface GetTokenAccountParams extends Base {
+  ownerKey: PublicKey;
+  programId: PublicKey;
 }
 
 export const getMerchantAccount = async (
@@ -78,17 +76,12 @@ export const getOrderAccounts = async (
   }
 };
 
-export const fetchProgramAccounts = async (
-  params: GetProgramAccountsParams
-): Promise<Result<FetchProgramAccountsResult[]>> => {
-  const { connection, programId } = params;
-  const programIdKey = new PublicKey(programId);
+export const fetchTokenAccounts = async (
+  params: GetTokenAccountParams
+): Promise<Result<TokenApiResult>> => {
+  const { connection, ownerKey, programId } = params;
   try {
-    // const xxx = await connection.getProgramAccounts(programIdKey, SINGLE);
-    // // const yyy = MerchantAccount.decode(MerchantAccount.schema, MerchantAccount, xxx[0].account.data as Buffer);
-    // const zzz = MERCHANT_LAYOUT.decode(xxx[0].account.data);
-    // debugger;
-    return success(await connection.getProgramAccounts(programIdKey, SINGLE));
+    return success(await connection.getParsedTokenAccountsByOwner(ownerKey, { programId }, SINGLE));
   } catch (error) {
     return failure(error);
   }
