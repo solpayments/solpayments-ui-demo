@@ -9,11 +9,10 @@
   import Tokens from './components/Tokens.svelte';
 
   export let name: string;
-
-  const orderId = '1235';
-  const secret = 'xyz';
-  const amount: number = 17;
-  const mintAddress: string = '93p2SYb8DRdzp9paiNUKKSiczQLcfK4j2CAGdnftTcCV';
+  export let orderId: string;
+  export let secret: string;
+  export let amount: number;
+  export let mintAddress: string;
 
   const selectedToken = derived(userTokens, ($userTokens) => {
     const possible = $userTokens.filter(
