@@ -1,9 +1,14 @@
 <script lang="ts">
   import { connectToWallet } from './helpers/wallet';
-  import { walletConnected, store as adapter, setComp } from './stores';
+  import { walletConnected, store as adapter, setWalletConnected } from './stores';
   import { registerMerchant } from './instructions/register';
   import { Connection } from '@solana/web3.js';
+  import { SINGLE_GOSSIP } from './helpers/constants';
+  import { fetchProgramAccounts } from './helpers/api';
+  // import { MERCHANT_LAYOUT } from './helpers/layout';
+
   export let name: string;
+  export let programId: string;
 </script>
 
 <main>
@@ -13,7 +18,7 @@
     apps.
   </p>
 
-  <button on:click={() => setComp()}> Connect </button>
+  <button on:click={() => setWalletConnected()}> Connect </button>
 
   {#if $walletConnected}
     {#await connectToWallet()}
@@ -27,9 +32,23 @@
 
   {#if $adapter?.publicKey}
     <p style="color: green">Connected to {$adapter.publicKey}</p>
+
+    {#await fetchProgramAccounts({
+      connection: new Connection('http://localhost:8899', SINGLE_GOSSIP),
+      programId,
+    })}
+      <p>loading program accounts</p>
+    {:then result}
+      {console.log('>>>>>>>>>>> accounts ', result)}
+      <p style="color: green">Done</p>
+    {:catch error}
+      {console.log('errrrrrrrrrrrrrrr ?? ', error)}
+      <p style="color: red">{error}</p>
+    {/await}
+
     {#await registerMerchant({
-      connection: new Connection('http://localhost:8899', 'singleGossip'),
-      thisProgramId: '8RqbzUupLSSdTGCzkZsFjUwUupWuu2Jph5x4LeU1wV7C',
+      connection: new Connection('http://localhost:8899', SINGLE_GOSSIP),
+      thisProgramId: programId,
       wallet: $adapter,
     })}
       <p>loading</p>
