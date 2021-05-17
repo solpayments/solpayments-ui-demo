@@ -1,6 +1,7 @@
 <script lang="ts">
+  import { derived } from 'svelte/store';
   import { setContext, onMount } from 'svelte';
-  import { connected } from './stores';
+  import { connected, userTokens } from './stores';
   import { getTokenRegistry } from './stores/tokenRegistry';
   import Wallet from './components/Wallet.svelte';
   import MerchantComponent from './components/Merchant.svelte';
@@ -8,6 +9,21 @@
   import Tokens from './components/Tokens.svelte';
 
   export let name: string;
+
+  const orderId = '1235';
+  const secret = 'xyz';
+  const amount: number = 17;
+  const mintAddress: string = '93p2SYb8DRdzp9paiNUKKSiczQLcfK4j2CAGdnftTcCV';
+
+  const selectedToken = derived(userTokens, ($userTokens) => {
+    const possible = $userTokens.filter(
+      (item) => item.account.data.parsed.info.mint === mintAddress
+    );
+    if (possible.length > 0) {
+      return possible[0];
+    }
+    return null;
+  });
 
   setContext('solanaNetwork', 'http://localhost:8899');
 
@@ -28,7 +44,11 @@
 
     <Tokens />
 
-    <ExpressCheckout />
+    {#if $selectedToken}
+      <ExpressCheckout {orderId} {secret} {amount} buyerToken={$selectedToken} />
+    {:else}
+      <p style="color: red">Token account not found.</p>
+    {/if}
   {:else}
     <p style="color: red">Not connected</p>
   {/if}
