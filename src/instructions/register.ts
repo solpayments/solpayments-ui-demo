@@ -28,10 +28,13 @@ interface RegisterMerchantParams {
 export const registerMerchant = async (
   params: RegisterMerchantParams
 ): Promise<Result<TransactionSignature>> => {
-  const { connection, data, fee, seed, thisProgramId, wallet } = params;
+  const { connection, thisProgramId, wallet } = params;
   if (!wallet.publicKey) {
     return failure(new Error('Wallet not connected'));
   }
+  const data = params.data || null;
+  const fee = params.fee || null;
+  const seed = params.seed || null;
   const programIdKey = new PublicKey(thisProgramId);
   const merchant_pubkey = await PublicKey.createWithSeed(wallet.publicKey, MERCHANT, programIdKey);
 
