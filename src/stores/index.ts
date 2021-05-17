@@ -1,4 +1,4 @@
-import { writable, derived } from 'svelte/store';
+import { derived, writable } from 'svelte/store';
 import type { WalletAdapter } from '../helpers/types';
 
 type Adapter = WalletAdapter | undefined;
@@ -12,3 +12,5 @@ export const connected = derived(adapter, $adapter => {
   }
   return false;
 })
+/** the immutable program id */
+export const programId = writable<string>('8RqbzUupLSSdTGCzkZsFjUwUupWuu2Jph5x4LeU1wV7C');
