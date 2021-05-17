@@ -54,8 +54,8 @@ export class InstructionData extends Layout {
           kind: STRUCT,
           fields: [
             [AMOUNT, U64],
-            [ORDER_ID, [STRING]],
-            [SECRET, [STRING]],
+            [ORDER_ID, STRING],
+            [SECRET, STRING],
           ],
         },
       ],
