@@ -10,7 +10,7 @@ export const updateWallet = (details: WalletAdapter): void => {
   });
 };
 
-export const setComp = (): void => {
+export const setWalletConnected = (): void => {
   walletConnected.update((_) => true);
 };
 
