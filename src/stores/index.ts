@@ -1,22 +1,14 @@
-import { writable } from 'svelte/store';
+import { writable, derived } from 'svelte/store';
 import type { WalletAdapter } from '../helpers/types';
 
+type Adapter = WalletAdapter | undefined;
+
 /** the wallet adapter from sollet, etc */
-export const adapter = writable<WalletAdapter | undefined>(undefined);
+export const adapter = writable<Adapter>(undefined);
 /** is the wallet connected? */
-export const walletConnected = writable<boolean>(false);
-
-export const updateWallet = (details: WalletAdapter): void => {
-  adapter.update((_) => {
-    return details;
-  });
-};
-
-export const setWalletConnected = (): void => {
-  walletConnected.update((_) => true);
-};
-
-export const removeWallet = (): void => {
-  adapter.update((_) => undefined);
-  walletConnected.update((_) => false);
-};
+export const connected = derived(adapter, $adapter => {
+  if ($adapter && $adapter.publicKey) {
+    return true;
+  }
+  return false;
+})
