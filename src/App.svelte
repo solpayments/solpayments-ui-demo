@@ -1,6 +1,10 @@
 <script lang="ts">
+  // import { Buffer } from 'buffer';
+  // (window as any).Buffer = Buffer;
   import { connectToWallet } from './helpers/wallet';
   import { comp, store as adapter, setComp } from './stores';
+  import { registerMerchant } from './instructions/register';
+  import { Connection } from '@solana/web3.js';
   export let name: string;
 </script>
 
@@ -25,6 +29,19 @@
 
   {#if $adapter?.publicKey}
     <p style="color: green">Connected to {$adapter.publicKey}</p>
+    {#await registerMerchant({
+      connection: new Connection('http://localhost:8899', 'singleGossip'),
+      programId: '8RqbzUupLSSdTGCzkZsFjUwUupWuu2Jph5x4LeU1wV7C',
+      wallet: $adapter,
+    })}
+      <p>loading</p>
+    {:then result}
+      {console.log('>>>>>>>>>>> ', result)}
+      <p style="color: green">Done</p>
+    {:catch error}
+      {console.log('errrrrrrrrrrrrrrr ?? ', error)}
+      <p style="color: red">{error}</p>
+    {/await}
   {:else}
     <p style="color: red">Not connected</p>
   {/if}
