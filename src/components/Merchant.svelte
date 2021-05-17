@@ -12,17 +12,18 @@
   import { registerMerchant } from '../instructions/register';
   import { SINGLE_GOSSIP } from '../helpers/constants';
   import TrasactionResult from './TrasactionResult.svelte';
+  import type { Adapter } from '../stores';
 
   const solanaNetwork: string = getContext('solanaNetwork');
   let registrationProcessing = false;
   let registrationResultTxId: string | undefined = undefined;
 
-  const merchantPromise = derived(adapter, ($adapter) => {
-    if ($adapter && $adapter.publicKey) {
+  const fetchMerchant = (connectedWallet: Adapter) => {
+    if (connectedWallet && connectedWallet.publicKey) {
       // this promise tries to get the merchant account
       return getMerchantAccount({
         connection: new Connection(solanaNetwork, SINGLE_GOSSIP),
-        ownerKey: $adapter.publicKey,
+        ownerKey: connectedWallet.publicKey,
         programId: $globalProgramId,
       }).then((result) => {
         // update the merchant store with the merchant object
@@ -34,6 +35,20 @@
           }
         }
       });
+    }
+  };
+
+  const getMerchantOrBust = async (connectedWallet: Adapter) => {
+    while (!$merchant) {
+      fetchMerchant(connectedWallet);
+      // sleep
+      await new Promise((r) => setTimeout(r, 2000));
+    }
+  };
+
+  const merchantPromise = derived(adapter, ($adapter) => {
+    if ($adapter && $adapter.publicKey) {
+      fetchMerchant($adapter);
     }
     return null;
   });
@@ -69,6 +84,7 @@
       <p style="color: red">{error}</p>
     {/await}
   {/if}
+
   {#if $connected}
     {#if $merchant}
       <p style="color: green">Merchant Address: {$merchant.address}</p>
@@ -83,7 +99,7 @@
     {#await registrationPromise}
       <p>registering merchant</p>
     {:then txId}
-      <TrasactionResult {txId} />
+      <TrasactionResult {txId} sideEffect={getMerchantOrBust($adapter)} />
     {:catch error}
       <p style="color: red">{error}</p>
     {/await}
