@@ -11,6 +11,7 @@
   import { getMerchantAccount } from '../helpers/api';
   import { registerMerchant } from '../instructions/register';
   import { SINGLE_GOSSIP } from '../helpers/constants';
+  import TrasactionResult from './TrasactionResult.svelte';
 
   const solanaNetwork: string = getContext('solanaNetwork');
 
@@ -71,8 +72,8 @@
   {#if registrationPromise}
     {#await registrationPromise}
       <p>registering merchant</p>
-    {:then txid}
-      <p style="color: green">sucess in registering merchant {txid}</p>
+    {:then txId}
+      <TrasactionResult {txId} />
     {:catch error}
       <p style="color: red">{error}</p>
     {/await}
