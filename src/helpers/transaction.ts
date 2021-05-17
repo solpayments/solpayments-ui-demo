@@ -1,9 +1,7 @@
 import type { Account, Connection, Transaction, TransactionSignature } from '@solana/web3.js';
 import type { WalletAdapter } from './types';
 import { failure, success, Result } from './result';
-
-const MAX = 'max';
-const SINGLE = 'single';
+import { MAX, SINGLE } from './constants';
 
 /**
  * @param connection - the connection to the blockchain

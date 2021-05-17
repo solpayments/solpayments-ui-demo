@@ -1,10 +1,7 @@
 import type { Schema } from 'borsh';
 import { Layout } from './borsh';
 import type { Dictionary } from './types';
-
-const ENUM = 'enum';
-const INSTRUCTION = 'instruction';
-const STRUCT = 'struct';
+import { ENUM, INSTRUCTION, STRUCT } from './constants';
 
 export enum InstructionType {
   RegisterMerchant = 'RegisterMerchant',
