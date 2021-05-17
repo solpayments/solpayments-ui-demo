@@ -31,7 +31,7 @@
     <p style="color: green">Connected to {$adapter.publicKey}</p>
     {#await registerMerchant({
       connection: new Connection('http://localhost:8899', 'singleGossip'),
-      programId: '8RqbzUupLSSdTGCzkZsFjUwUupWuu2Jph5x4LeU1wV7C',
+      thisProgramId: '8RqbzUupLSSdTGCzkZsFjUwUupWuu2Jph5x4LeU1wV7C',
       wallet: $adapter,
     })}
       <p>loading</p>
