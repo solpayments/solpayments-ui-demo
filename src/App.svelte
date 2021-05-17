@@ -26,9 +26,9 @@
   {#if $connected}
     <MerchantComponent />
 
-    <ExpressCheckout />
-
     <Tokens />
+
+    <ExpressCheckout />
   {:else}
     <p style="color: red">Not connected</p>
   {/if}
