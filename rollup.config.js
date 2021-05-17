@@ -1,7 +1,7 @@
 import svelte from 'rollup-plugin-svelte';
 import commonjs from '@rollup/plugin-commonjs';
 import resolve from '@rollup/plugin-node-resolve';
-import nodePolyfills from 'rollup-plugin-polyfill-node';
+import nodePolyfills from 'rollup-plugin-node-polyfills';
 import livereload from 'rollup-plugin-livereload';
 import { terser } from 'rollup-plugin-terser';
 import sveltePreprocess from 'svelte-preprocess';
@@ -57,16 +57,14 @@ export default {
     // some cases you'll need additional configuration -
     // consult the documentation for details:
     // https://github.com/rollup/plugins/tree/master/packages/commonjs
+    commonjs(),
     resolve({
       browser: true,
-      dedupe: ['svelte'],
+      dedupe: ['svelte', 'bn.js', 'buffer'],
       preferBuiltins: false,
     }),
-    commonjs({
-      preferBuiltins: false,
-    }),
-    json(),
     nodePolyfills(),
+    json(),
     typescript({
       sourceMap: !production,
       inlineSources: !production,
