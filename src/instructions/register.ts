@@ -18,6 +18,9 @@ import { MERCHANT } from '../helpers/constants';
 
 interface RegisterMerchantParams {
   connection: Connection;
+  data?: string;
+  fee?: string;
+  seed?: string;
   thisProgramId: string;
   wallet: WalletAdapter;
 }
@@ -25,7 +28,7 @@ interface RegisterMerchantParams {
 export const registerMerchant = async (
   params: RegisterMerchantParams
 ): Promise<Result<TransactionSignature>> => {
-  const { connection, thisProgramId, wallet } = params;
+  const { connection, data, fee, seed, thisProgramId, wallet } = params;
   if (!wallet.publicKey) {
     return failure(new Error('Wallet not connected'));
   }
@@ -74,7 +77,11 @@ export const registerMerchant = async (
         data: new Instruction({
           instruction: InstructionType.RegisterMerchant,
           [InstructionType.RegisterMerchant]: new Uint8Array(
-            new InstructionData(InstructionType.RegisterMerchant, {}).encode()
+            new InstructionData(InstructionType.RegisterMerchant, {
+              seed,
+              fee,
+              data,
+            }).encode()
           ),
         }).encode(),
       })

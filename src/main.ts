@@ -7,7 +7,7 @@ const app = new App({
     orderId: 'order7',
     secret: 'xyz',
     amount: 15000,
-    mintAddress: 'BrJLmAUQeqymWPfKBhjnAEWYLNvcaUB4cuuGNXyjdsXf',
+    mintAddress: 'BLLmzN8pcNJ4CswC1Mq9q5sEi95VQz3kyzCtKgEPv4Wk',
   },
 });
 

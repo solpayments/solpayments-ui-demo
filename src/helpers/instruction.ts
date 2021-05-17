@@ -1,7 +1,20 @@
 import type { Schema } from 'borsh';
 import { Layout } from './borsh';
 import type { Dictionary } from './types';
-import { AMOUNT, ENUM, INSTRUCTION, ORDER_ID, SECRET, STRING, STRUCT, U64 } from './constants';
+import {
+  AMOUNT,
+  DATA,
+  ENUM,
+  FEE,
+  INSTRUCTION,
+  OPTION,
+  ORDER_ID,
+  SECRET,
+  SEED,
+  STRING,
+  STRUCT,
+  U64,
+} from './constants';
 
 export enum InstructionType {
   RegisterMerchant = 'RegisterMerchant',
@@ -43,7 +56,11 @@ export class InstructionData extends Layout {
         InstructionData,
         {
           kind: STRUCT,
-          fields: [],
+          fields: [
+            [SEED, { kind: OPTION, type: STRING }],
+            [FEE, { kind: OPTION, type: STRING }],
+            [DATA, { kind: OPTION, type: STRING }],
+          ],
         },
       ],
     ]),

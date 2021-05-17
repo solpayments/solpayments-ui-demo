@@ -31,7 +31,7 @@ export const orderAccounts = writable<OrderInfo[]>([]);
 /** the network URL */
 export const solanaNetwork = writable<string>('https://api.mainnet-beta.solana.com');
 /** the immutable program id */
-export const programId = writable<string>('8RqbzUupLSSdTGCzkZsFjUwUupWuu2Jph5x4LeU1wV7C');
+export const programId = writable<string>('EQmxue1EHABzXj7qETXseC5iVSnCZtZ6Y94UQuwyawuP');
 
 // helpers
 export const updateUserTokens = (userTokenList: TokenFromApi[], allTokens: TokenMap): void => {

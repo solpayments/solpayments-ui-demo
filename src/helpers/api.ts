@@ -67,39 +67,41 @@ export const getOrderAccounts = async (
       filters: [{ memcmp: { offset: 17, bytes: merchantKey.toBase58() } }],
     });
 
-    return success(await Promise.all(
-      result.map(async (item) => {
-        const orderData = ORDER_LAYOUT.decode(item.account.data);
-        const thisToken = tokenRegistry.get(orderData.mintPubkey.toBase58());
+    return success(
+      await Promise.all(
+        result.map(async (item) => {
+          const orderData = ORDER_LAYOUT.decode(item.account.data);
+          const thisToken = tokenRegistry.get(orderData.mintPubkey.toBase58());
 
-        let decimals = 0;
-        if (thisToken) {
-          decimals = thisToken.decimals;
-        } else {
-          const mint = await connection.getParsedAccountInfo(orderData.mintPubkey).then((res) => {
-            return res.value;
-          });
-          if (mint) {
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
-            decimals = (mint as any).data.parsed.info.decimals;
+          let decimals = 0;
+          if (thisToken) {
+            decimals = thisToken.decimals;
+          } else {
+            const mint = await connection.getParsedAccountInfo(orderData.mintPubkey).then((res) => {
+              return res.value;
+            });
+            if (mint) {
+              // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
+              decimals = (mint as any).data.parsed.info.decimals;
+            }
           }
-        }
 
-        return {
-          ...item,
-          account: {
-            ...item.account,
-            data: {
-              ...orderData,
-              expectedAmount: getUiAmount(orderData.expectedAmount, decimals),
-              feeAmount: getUiAmount(orderData.feeAmount, decimals),
-              paidAmount: getUiAmount(orderData.paidAmount, decimals),
-              takeHomeAmount: getUiAmount(orderData.takeHomeAmount, decimals),
+          return {
+            ...item,
+            account: {
+              ...item.account,
+              data: {
+                ...orderData,
+                expectedAmount: getUiAmount(orderData.expectedAmount, decimals),
+                feeAmount: getUiAmount(orderData.feeAmount, decimals),
+                paidAmount: getUiAmount(orderData.paidAmount, decimals),
+                takeHomeAmount: getUiAmount(orderData.takeHomeAmount, decimals),
+              },
             },
-          },
-        };
-      })
-    ));
+          };
+        })
+      )
+    );
   } catch (error) {
     return failure(error);
   }

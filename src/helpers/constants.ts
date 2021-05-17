@@ -12,3 +12,7 @@ export const SECRET = 'secret';
 export const STRING = 'string';
 export const PDA_SEED = 'sol_payment_processor';
 export const MERCHANT = 'merchant';
+export const SEED = 'seed';
+export const FEE = 'fee';
+export const DATA = 'data';
+export const OPTION = 'option';
