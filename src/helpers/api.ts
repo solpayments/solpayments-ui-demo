@@ -55,14 +55,6 @@ export const getMerchantAccount = async (
   }
 };
 
-interface MintData {
-  decimals: number;
-  freezeAuthority: string | null;
-  isInitialized: boolean;
-  mintAuthority: string;
-  supply: string;
-}
-
 export const getOrderAccounts = async (
   params: GetOrderAccountParams
 ): Promise<Result<OrderInfo[] | null>> => {
@@ -79,11 +71,19 @@ export const getOrderAccounts = async (
       result.map(async (item) => {
         const orderData = ORDER_LAYOUT.decode(item.account.data);
         const thisToken = tokenRegistry.get(orderData.mintPubkey.toBase58());
-        const decimals = thisToken ? thisToken.decimals : 0;
 
-        // await connection.getParsedAccountInfo(orderData.mintPubkey).then((yy) => {
-        //   console.log("mintxxxx >>>> ", (yy.value?.data.parsed.info));
-        // });
+        let decimals = 0;
+        if (thisToken) {
+          decimals = thisToken.decimals;
+        } else {
+          const mint = await connection.getParsedAccountInfo(orderData.mintPubkey).then((res) => {
+            return res.value;
+          });
+          if (mint) {
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
+            decimals = (mint as any).data.parsed.info.decimals;
+          }
+        }
 
         return {
           ...item,
@@ -91,7 +91,10 @@ export const getOrderAccounts = async (
             ...item.account,
             data: {
               ...orderData,
+              expectedAmount: getUiAmount(orderData.expectedAmount, decimals),
               feeAmount: getUiAmount(orderData.feeAmount, decimals),
+              paidAmount: getUiAmount(orderData.paidAmount, decimals),
+              takeHomeAmount: getUiAmount(orderData.takeHomeAmount, decimals),
             },
           },
         };

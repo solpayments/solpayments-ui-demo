@@ -29,8 +29,6 @@
           throw result.error;
         } else {
           orderAccounts.update(() => result.value || []);
-          // debugger;
-          // console.log("orders??? >> ", result.value);
         }
       });
     }
@@ -58,7 +56,7 @@
         <p style="color: red">{error}</p>
       {/await}
     {:else}
-      <p>not loading tokens</p>
+      <p>not loading orders</p>
     {/if}
 
     {#if $orderAccounts}
@@ -68,7 +66,8 @@
             .secret} ||&nbsp; created: {orderAccount.account.data.created} ||&nbsp; modified: {orderAccount
             .account.data.modified} ||&nbsp; status: {orderAccount.account.data.status} ||&nbsp; fee:
           {orderAccount.account.data.feeAmount} ||&nbsp; paid: {orderAccount.account.data
-            .paidAmount} ||&nbsp; expected: {orderAccount.account.data.expectedAmount}
+            .paidAmount} ||&nbsp; expected: {orderAccount.account.data.expectedAmount} ||&nbsp; take
+          home: {orderAccount.account.data.takeHomeAmount}
         </p>
       {/each}
     {/if}
