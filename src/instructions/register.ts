@@ -34,9 +34,9 @@ export const registerMerchant = async (
   }
   const data = params.data || null;
   const fee = params.fee || null;
-  const seed = params.seed || null;
+  const seed = params.seed || MERCHANT;
   const programIdKey = new PublicKey(thisProgramId);
-  const merchant_pubkey = await PublicKey.createWithSeed(wallet.publicKey, MERCHANT, programIdKey);
+  const merchant_pubkey = await PublicKey.createWithSeed(wallet.publicKey, seed, programIdKey);
 
   const transaction = new Transaction({ feePayer: wallet.publicKey });
   // const transaction = new Transaction();
