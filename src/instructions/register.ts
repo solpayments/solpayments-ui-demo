@@ -1,6 +1,5 @@
-import type { Connection } from '@solana/web3.js';
+import type { Connection, TransactionSignature } from '@solana/web3.js';
 import {
-  // Account,
   PublicKey,
   Transaction,
   TransactionInstruction,
@@ -11,6 +10,7 @@ import type { Result } from '../helpers/result';
 import { failure } from '../helpers/result';
 import type { WalletAdapter } from '../helpers/types';
 import { signAndSendTransaction } from '../helpers/transaction';
+import { Instruction, InstructionData, InstructionType } from '../helpers/instruction';
 
 const MERCHANT = 'merchant';
 // // const TOKEN_PROGRAM_ID = new PublicKey(
@@ -23,11 +23,10 @@ interface RegisterMerchantParams {
   wallet: WalletAdapter;
 }
 
-// Promise<Result<TransactionSignature>>
 export const registerMerchant = async (
   params: RegisterMerchantParams
-): Promise<Result<any>> => {
-  const { connection, thisProgramId,  wallet } = params;
+): Promise<Result<TransactionSignature>> => {
+  const { connection, thisProgramId, wallet } = params;
   if (!wallet.publicKey) {
     return failure(new Error('Wallet not connected'));
   }
@@ -73,7 +72,12 @@ export const registerMerchant = async (
           { pubkey: SystemProgram.programId, isSigner: false, isWritable: false },
           { pubkey: SYSVAR_RENT_PUBKEY, isSigner: false, isWritable: false },
         ],
-        // data: Buffer.from(Uint8Array.of(0)),
+        data: new Instruction({
+          instruction: InstructionType.RegisterMerchant,
+          [InstructionType.RegisterMerchant]: new Uint8Array(
+            new InstructionData(InstructionType.RegisterMerchant, {}).encode()
+          ),
+        }).encode(),
       })
     );
   } catch (error) {
