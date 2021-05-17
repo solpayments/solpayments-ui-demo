@@ -39,7 +39,7 @@ export const getSellerTokenAccountPubkey = async (
   orderAccount: PublicKey,
   mint: PublicKey,
   programIdKey: PublicKey
-) => {
+): Promise<[PublicKey, number]> => {
   return PublicKey.findProgramAddress(
     [orderAccount.toBytes(), TOKEN_PROGRAM_ID.toBytes(), mint.toBytes()],
     programIdKey
@@ -65,8 +65,13 @@ export const expressCheckout = async (
   }
   const programIdKey = new PublicKey(thisProgramId);
   const orderAccount = await getOrderAccountPubkey(orderId, wallet.publicKey, programIdKey);
-  const pda = await PublicKey.findProgramAddress([Buffer.from(PDA_SEED)], programIdKey);
-  const sellerTokenAccount = await getSellerTokenAccountPubkey(orderAccount, mint, programIdKey);
+  const promiseResults = await Promise.all([
+    PublicKey.findProgramAddress([Buffer.from(PDA_SEED)], programIdKey),
+    getSellerTokenAccountPubkey(orderAccount, mint, programIdKey),
+  ]);
+  const pda = promiseResults[0];
+  const sellerTokenAccount = promiseResults[1];
+
   const transaction = new Transaction({ feePayer: wallet.publicKey });
 
   try {
