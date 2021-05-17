@@ -1,0 +1,117 @@
+import { PublicKey } from '@solana/web3.js';
+import type { Connection } from '@solana/web3.js';
+import type { Result } from './result';
+import { failure, success } from './result';
+import { SINGLE } from './constants';
+import { MERCHANT_LAYOUT, ORDER_LAYOUT } from '../helpers/layout';
+import type { Merchant } from '../helpers/layout';
+import type { TokenApiResult } from '../helpers/solana';
+import type { OrderInfo } from '../helpers/layout';
+import { getUiAmount } from '../helpers/utils';
+import type { TokenMap } from '../stores/tokenRegistry';
+
+interface Base {
+  connection: Connection;
+}
+
+interface GetMerchantAccountParams extends Base {
+  ownerKey: PublicKey;
+  programId: string;
+}
+
+interface GetOrderAccountParams extends Base {
+  merchantKey: PublicKey;
+  programId: string;
+  tokenRegistry: TokenMap;
+}
+
+interface GetTokenAccountParams extends Base {
+  ownerKey: PublicKey;
+  programId: PublicKey;
+}
+
+export const getMerchantAccount = async (
+  params: GetMerchantAccountParams
+): Promise<Result<Merchant | null>> => {
+  const { connection, ownerKey, programId } = params;
+  const programIdKey = new PublicKey(programId);
+
+  try {
+    const result = await connection.getProgramAccounts(programIdKey, {
+      commitment: SINGLE,
+      filters: [{ memcmp: { offset: 1, bytes: ownerKey.toBase58() } }],
+    });
+
+    if (result.length < 1) {
+      return success(null);
+    }
+
+    return success({
+      address: result[0].pubkey,
+      account: MERCHANT_LAYOUT.decode(result[0].account.data),
+    });
+  } catch (error) {
+    return failure(error);
+  }
+};
+
+export const getOrderAccounts = async (
+  params: GetOrderAccountParams
+): Promise<Result<OrderInfo[]>> => {
+  const { connection, merchantKey, programId, tokenRegistry } = params;
+  const programIdKey = new PublicKey(programId);
+
+  try {
+    const result = await connection.getProgramAccounts(programIdKey, {
+      commitment: SINGLE,
+      filters: [{ memcmp: { offset: 17, bytes: merchantKey.toBase58() } }],
+    });
+
+    return success(await Promise.all(
+      result.map(async (item) => {
+        const orderData = ORDER_LAYOUT.decode(item.account.data);
+        const thisToken = tokenRegistry.get(orderData.mintPubkey.toBase58());
+
+        let decimals = 0;
+        if (thisToken) {
+          decimals = thisToken.decimals;
+        } else {
+          const mint = await connection.getParsedAccountInfo(orderData.mintPubkey).then((res) => {
+            return res.value;
+          });
+          if (mint) {
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
+            decimals = (mint as any).data.parsed.info.decimals;
+          }
+        }
+
+        return {
+          ...item,
+          account: {
+            ...item.account,
+            data: {
+              ...orderData,
+              expectedAmount: getUiAmount(orderData.expectedAmount, decimals),
+              feeAmount: getUiAmount(orderData.feeAmount, decimals),
+              paidAmount: getUiAmount(orderData.paidAmount, decimals),
+              takeHomeAmount: getUiAmount(orderData.takeHomeAmount, decimals),
+            },
+          },
+        };
+      })
+    ));
+  } catch (error) {
+    return failure(error);
+  }
+};
+
+export const fetchTokenAccounts = async (
+  params: GetTokenAccountParams
+): Promise<Result<TokenApiResult>> => {
+  const { connection, ownerKey, programId } = params;
+  try {
+    return success(await connection.getParsedTokenAccountsByOwner(ownerKey, { programId }, SINGLE));
+  } catch (error) {
+    return failure(error);
+  }
+};

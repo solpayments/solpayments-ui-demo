@@ -1,7 +1,32 @@
 <script lang="ts">
-  import { connectToWallet } from './helpers/wallet';
-  import { comp, store as adapter, setComp } from './stores';
+  import { derived } from 'svelte/store';
+  import { onMount } from 'svelte';
+  import { connected, solanaNetwork, userTokens } from './stores';
+  import { getTokenRegistry } from './stores/tokenRegistry';
+  import Wallet from './components/Wallet.svelte';
+  import MerchantComponent from './components/Merchant.svelte';
+  import ExpressCheckout from './components/Checkout.svelte';
+  import Tokens from './components/Tokens.svelte';
+  import Orders from './components/Orders.svelte';
+
   export let name: string;
+  export let orderId: string;
+  export let secret: string;
+  export let amount: number;
+  export let mintAddress: string;
+
+  const selectedToken = derived(userTokens, ($userTokens) => {
+    const possible = $userTokens.filter(
+      (item) => item.account.data.parsed.info.mint === mintAddress
+    );
+    if (possible.length > 0) {
+      return possible[0];
+    }
+    return null;
+  });
+
+  solanaNetwork.update(() => 'http://localhost:8899');
+  onMount(async () => getTokenRegistry());
 </script>
 
 <main>
@@ -11,20 +36,22 @@
     apps.
   </p>
 
-  <button on:click={() => setComp()}> Connect </button>
+  <Wallet />
 
-  {#if $comp}
-    {#await connectToWallet()}
-      <p>loading</p>
-    {:then _pubkey}
-      <p style="color: green">Done</p>
-    {:catch error}
-      <p style="color: red">{error}</p>
-    {/await}
-  {/if}
+  {#if $connected}
+    <MerchantComponent />
 
-  {#if $adapter?.publicKey}
-    <p style="color: green">Connected to {$adapter.publicKey}</p>
+    <Tokens />
+
+    {#if $selectedToken}
+      <ExpressCheckout {orderId} {secret} {amount} buyerToken={$selectedToken} />
+    {:else}
+      <p style="color: red">Token account not found.</p>
+    {/if}
+
+    <hr />
+
+    <Orders />
   {:else}
     <p style="color: red">Not connected</p>
   {/if}

@@ -1,0 +1,75 @@
+<script lang="ts">
+  import { onMount } from 'svelte';
+  import { Connection } from '@solana/web3.js';
+  import {
+    adapter,
+    connected,
+    merchantStore as merchant,
+    orderAccounts,
+    programId as globalProgramId,
+    solanaNetwork,
+  } from '../stores';
+  import { tokenMap } from '../stores/tokenRegistry';
+  import { getOrderAccounts } from '../helpers/api';
+  import { SINGLE_GOSSIP } from '../helpers/constants';
+
+  let ordersPromise: Promise<any> | null = null;
+  export let ordersTimeout = 10000;
+
+  const loadOrders = () => {
+    if ($adapter && $adapter.publicKey && $merchant) {
+      ordersPromise = getOrderAccounts({
+        connection: new Connection($solanaNetwork, SINGLE_GOSSIP),
+        merchantKey: $merchant.address,
+        programId: $globalProgramId,
+        tokenRegistry: $tokenMap,
+      }).then((result) => {
+        ordersPromise = null;
+        if (result.error) {
+          throw result.error;
+        } else {
+          orderAccounts.update(() => result.value || []);
+        }
+      });
+    }
+  };
+
+  const continuousOrderReload = async () => {
+    loadOrders();
+    await new Promise((r) => setTimeout(r, ordersTimeout));
+    continuousOrderReload();
+  };
+
+  onMount(async () => {
+    continuousOrderReload();
+  });
+</script>
+
+<main>
+  {#if $connected}
+    <button on:click={() => loadOrders()}> Refresh Orders </button>
+
+    {#if ordersPromise}
+      {#await ordersPromise}
+        <p>loading orders</p>
+      {:catch error}
+        <p style="color: red">{error}</p>
+      {/await}
+    {:else}
+      <p>not loading orders</p>
+    {/if}
+
+    {#if $orderAccounts}
+      {#each $orderAccounts as orderAccount}
+        <p>
+          id: {orderAccount.account.data.orderId} ||&nbsp; secret: {orderAccount.account.data
+            .secret} ||&nbsp; created: {orderAccount.account.data.created} ||&nbsp; modified: {orderAccount
+            .account.data.modified} ||&nbsp; status: {orderAccount.account.data.status} ||&nbsp; fee:
+          {orderAccount.account.data.feeAmount} ||&nbsp; paid: {orderAccount.account.data
+            .paidAmount} ||&nbsp; expected: {orderAccount.account.data.expectedAmount} ||&nbsp; take
+          home: {orderAccount.account.data.takeHomeAmount}
+        </p>
+      {/each}
+    {/if}
+  {/if}
+</main>
