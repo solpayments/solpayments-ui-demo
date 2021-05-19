@@ -16,3 +16,4 @@ export const SEED = 'seed';
 export const FEE = 'fee';
 export const DATA = 'data';
 export const OPTION = 'option';
+export const PROGRAM_OWNER = 'mosh782eoKyPca9eotWfepHVSKavjDMBjNkNE3Gge6Z';
