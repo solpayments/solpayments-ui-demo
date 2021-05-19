@@ -34,7 +34,7 @@
             orderId,
             programOwnerAccount: new PublicKey(PROGRAM_OWNER),
             secret,
-            sponsorAccount: $merchant.account.sponsorPubkey,
+            sponsorAccount: $merchant.account.sponsor,
             thisProgramId: $globalProgramId,
             wallet: $adapter,
           })
