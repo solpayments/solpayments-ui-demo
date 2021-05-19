@@ -9,12 +9,15 @@
     solanaNetwork,
   } from '../stores';
   import { getMerchantAccount } from '../helpers/api';
+  import type { Packages } from '../helpers/data';
   import { registerMerchant } from '../instructions/register';
   import { MAX, SINGLE_GOSSIP } from '../helpers/constants';
   import TrasactionResult from './TrasactionResult.svelte';
   import type { Adapter } from '../stores';
 
   export let merchantTimeout = 2000;
+  export let seed: string | undefined = undefined;
+  export let data: Packages | undefined = undefined;
   let registrationProcessing = false;
   let registrationResultTxId: string | undefined = undefined;
 
@@ -59,6 +62,8 @@
     registrationPromise = $adapter
       ? registerMerchant({
           connection: new Connection($solanaNetwork, MAX),
+          data: data ? JSON.stringify(data) : undefined,
+          seed,
           thisProgramId: $globalProgramId,
           wallet: $adapter,
         })
