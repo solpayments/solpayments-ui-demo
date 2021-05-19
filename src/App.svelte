@@ -39,8 +39,10 @@
   <Wallet />
 
   {#if $connected}
+    <h3>Register Merchant</h3>
     <MerchantComponent />
 
+    <h3>Tokens</h3>
     <Tokens />
 
     {#if $selectedToken}
@@ -50,7 +52,7 @@
     {/if}
 
     <hr />
-
+    <h3>Orders</h3>
     <Orders />
   {:else}
     <p style="color: red">Not connected</p>

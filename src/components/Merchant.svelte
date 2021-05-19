@@ -89,8 +89,7 @@
     {#if $merchant}
       <p style="color: green">Merchant Address: {$merchant.address}</p>
       <p>
-        owner: {$merchant.account.owner} ||&nbsp; sponsor: {$merchant.account.sponsor} ||&nbsp; fee:
-        {$merchant.account.fee} ||&nbsp; data: {$merchant.account.data}
+        fee: {$merchant.account.fee} ||&nbsp; data: {$merchant.account.data}
       </p>
     {:else if !registrationResultTxId}
       <button on:click={() => handleRegistrationPromise()} disabled={registrationProcessing}>
