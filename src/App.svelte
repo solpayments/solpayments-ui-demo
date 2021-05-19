@@ -1,6 +1,7 @@
 <script lang="ts">
   import { derived } from 'svelte/store';
   import { onMount } from 'svelte';
+  import type { Packages } from './helpers/data';
   import { connected, solanaNetwork, userTokens } from './stores';
   import { getTokenRegistry } from './stores/tokenRegistry';
   import Wallet from './components/Wallet.svelte';
@@ -24,6 +25,13 @@
     }
     return null;
   });
+
+  const subscriptionPackages: Packages = {
+    packages: [
+      { duration: 60 * 60 * 24 * 30, name: 'basic', price: 100000 },
+      { duration: 60 * 60 * 24 * 30, name: 'advanced', price: 200000 },
+    ],
+  };
 
   solanaNetwork.update(() => 'http://localhost:8899');
   onMount(async () => getTokenRegistry());
@@ -50,6 +58,10 @@
     {:else}
       <p style="color: red">Token account not found.</p>
     {/if}
+
+    <hr />
+    <h3>Subscription</h3>
+    <MerchantComponent seed="demo" data={subscriptionPackages} />
 
     <hr />
     <h3>Orders</h3>
