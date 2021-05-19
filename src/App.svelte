@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { PublicKey } from '@solana/web3.js';
   import { derived } from 'svelte/store';
   import { onMount } from 'svelte';
   import type { Packages } from './helpers/data';
@@ -26,6 +27,7 @@
     return null;
   });
 
+  const subscriptionSeed = 'merchant';
   const subscriptionPackages: Packages = {
     packages: [
       { duration: 60 * 60 * 24 * 30, name: 'basic', price: 100000 },
@@ -61,7 +63,7 @@
 
     <hr />
     <h3>Subscription</h3>
-    <MerchantComponent seed="demo" data={subscriptionPackages} />
+    <MerchantComponent seed={subscriptionSeed} data={subscriptionPackages} />
 
     <hr />
     <h3>Orders</h3>

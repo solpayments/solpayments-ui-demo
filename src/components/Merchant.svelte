@@ -1,6 +1,6 @@
 <script lang="ts">
   import { derived } from 'svelte/store';
-  import { Connection } from '@solana/web3.js';
+  import { Connection, PublicKey } from '@solana/web3.js';
   import {
     adapter,
     connected,
@@ -8,10 +8,10 @@
     programId as globalProgramId,
     solanaNetwork,
   } from '../stores';
-  import { getMerchantAccount } from '../helpers/api';
+  import { getMerchantAccount, getMerchantByAddress } from '../helpers/api';
   import type { Packages } from '../helpers/data';
   import { registerMerchant } from '../instructions/register';
-  import { MAX, SINGLE_GOSSIP } from '../helpers/constants';
+  import { FINALIZED, PROCESSED } from '../helpers/constants';
   import TrasactionResult from './TrasactionResult.svelte';
   import type { Adapter } from '../stores';
 
@@ -23,9 +23,24 @@
 
   const fetchMerchant = (connectedWallet: Adapter) => {
     if (connectedWallet && connectedWallet.publicKey) {
+      if (seed) {
+        PublicKey.createWithSeed(
+          connectedWallet.publicKey,
+          seed,
+          new PublicKey($globalProgramId)
+        ).then((val) => {
+          getMerchantByAddress({
+            connection: new Connection($solanaNetwork, PROCESSED),
+            publicKey: val,
+          }).then((xxx) => {
+            console.log('>>>>>>>>>>>>>>>>>>> ', xxx);
+          });
+        });
+      }
+
       // this promise tries to get the merchant account
       return getMerchantAccount({
-        connection: new Connection($solanaNetwork, SINGLE_GOSSIP),
+        connection: new Connection($solanaNetwork, PROCESSED),
         ownerKey: connectedWallet.publicKey,
         programId: $globalProgramId,
       }).then((result) => {
@@ -61,7 +76,7 @@
     registrationProcessing = true;
     registrationPromise = $adapter
       ? registerMerchant({
-          connection: new Connection($solanaNetwork, MAX),
+          connection: new Connection($solanaNetwork, FINALIZED),
           data: data ? JSON.stringify(data) : undefined,
           seed,
           thisProgramId: $globalProgramId,
