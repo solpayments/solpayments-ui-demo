@@ -17,3 +17,6 @@ export const FEE = 'fee';
 export const DATA = 'data';
 export const OPTION = 'option';
 export const PROGRAM_OWNER = 'mosh782eoKyPca9eotWfepHVSKavjDMBjNkNE3Gge6Z';
+export const ORDER_ACC_MERCHANT_FIELD_OFFSET = 17;
+export const MERCHANT_ACC_OWNER_FIELD_OFFSET = 1;
+export const SOL_DECIMALS = 9;
