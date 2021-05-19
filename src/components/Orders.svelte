@@ -64,10 +64,9 @@
         <p>
           id: {orderAccount.account.data.orderId} ||&nbsp; secret: {orderAccount.account.data
             .secret} ||&nbsp; created: {orderAccount.account.data.created} ||&nbsp; modified: {orderAccount
-            .account.data.modified} ||&nbsp; status: {orderAccount.account.data.status} ||&nbsp; fee:
-          {orderAccount.account.data.feeAmount} ||&nbsp; paid: {orderAccount.account.data
-            .paidAmount} ||&nbsp; expected: {orderAccount.account.data.expectedAmount} ||&nbsp; take
-          home: {orderAccount.account.data.takeHomeAmount}
+            .account.data.modified} ||&nbsp; status: {orderAccount.account.data.status} ||&nbsp; paid:
+          {orderAccount.account.data.paidAmount} ||&nbsp; expected: {orderAccount.account.data
+            .expectedAmount} ||&nbsp; data: {orderAccount.account.data.data}
         </p>
       {/each}
     {/if}
