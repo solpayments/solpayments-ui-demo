@@ -73,6 +73,7 @@ export class InstructionData extends Layout {
             [AMOUNT, U64],
             [ORDER_ID, STRING],
             [SECRET, STRING],
+            [DATA, { kind: OPTION, type: STRING }],
           ],
         },
       ],
