@@ -1,9 +1,9 @@
 import { struct, Layout } from 'buffer-layout';
-import { publicKey, bool, i64, u8, u64, str } from '@project-serum/borsh';
+import { publicKey, i64, u8, u64, str } from '@project-serum/borsh';
 import type { AccountInfo, PublicKey } from '@solana/web3.js';
 
 export interface MerchantAccount {
-  status: boolean;
+  status: number;
   owner: PublicKey;
   sponsor: PublicKey;
   fee: number;
@@ -48,7 +48,7 @@ export interface OrderInfo {
 }
 
 export const MERCHANT_LAYOUT = struct([
-  bool('status'),
+  u8('status'),
   publicKey('owner'),
   publicKey('sponsor'),
   u64('fee'),
