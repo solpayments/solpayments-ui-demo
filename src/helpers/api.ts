@@ -5,7 +5,7 @@ import { failure, success } from './result';
 import {
   MERCHANT_ACC_OWNER_FIELD_OFFSET,
   ORDER_ACC_MERCHANT_FIELD_OFFSET,
-  SINGLE,
+  CONFIRMED,
   SOL_DECIMALS,
 } from './constants';
 import { MERCHANT_LAYOUT, ORDER_LAYOUT } from '../helpers/layout';
@@ -35,6 +35,35 @@ interface GetTokenAccountParams extends Base {
   programId: PublicKey;
 }
 
+interface GetMerchantByAddressparams extends Base {
+  publicKey: PublicKey;
+}
+
+/** Gets one merchant account using its address */
+export const getMerchantByAddress = async (
+  params: GetMerchantByAddressparams
+): Promise<Result<Merchant | null>> => {
+  const { connection, publicKey } = params;
+
+  try {
+    const result = await connection.getAccountInfo(publicKey, CONFIRMED);
+    if (!result) {
+      return success(null);
+    }
+    const merchantData = MERCHANT_LAYOUT.decode(result.data);
+    return success({
+      address: publicKey,
+      account: {
+        ...merchantData,
+        fee: getUiAmount(merchantData.fee, SOL_DECIMALS),
+      },
+    });
+  } catch (error) {
+    return failure(error);
+  }
+};
+
+/** Gets merchant accounts */
 export const getMerchantAccount = async (
   params: GetMerchantAccountParams
 ): Promise<Result<Merchant | null>> => {
@@ -43,7 +72,7 @@ export const getMerchantAccount = async (
 
   try {
     const result = await connection.getProgramAccounts(programIdKey, {
-      commitment: SINGLE,
+      commitment: CONFIRMED,
       filters: [
         { memcmp: { offset: MERCHANT_ACC_OWNER_FIELD_OFFSET, bytes: ownerKey.toBase58() } },
       ],
@@ -67,6 +96,7 @@ export const getMerchantAccount = async (
   }
 };
 
+/** Gets order accounts */
 export const getOrderAccounts = async (
   params: GetOrderAccountParams
 ): Promise<Result<OrderInfo[]>> => {
@@ -75,7 +105,7 @@ export const getOrderAccounts = async (
 
   try {
     const result = await connection.getProgramAccounts(programIdKey, {
-      commitment: SINGLE,
+      commitment: CONFIRMED,
       filters: [
         { memcmp: { offset: ORDER_ACC_MERCHANT_FIELD_OFFSET, bytes: merchantKey.toBase58() } },
       ],
@@ -119,12 +149,15 @@ export const getOrderAccounts = async (
   }
 };
 
+/** Gets SPL token accounts */
 export const fetchTokenAccounts = async (
   params: GetTokenAccountParams
 ): Promise<Result<TokenApiResult>> => {
   const { connection, ownerKey, programId } = params;
   try {
-    return success(await connection.getParsedTokenAccountsByOwner(ownerKey, { programId }, SINGLE));
+    return success(
+      await connection.getParsedTokenAccountsByOwner(ownerKey, { programId }, CONFIRMED)
+    );
   } catch (error) {
     return failure(error);
   }
