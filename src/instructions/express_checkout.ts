@@ -23,10 +23,13 @@ interface ExpressCheckoutParams {
   amount: number;
   buyerTokenAccount: PublicKey /** the token account used to pay for this order */;
   connection: Connection;
+  data?: string;
   merchantAccount: PublicKey;
   mint: PublicKey /** the mint in use; represents the currency */;
   orderId: string /** the unique order id */;
+  programOwnerAccount: PublicKey;
   secret: string /** a secret or encrypted string to verify this order */;
+  sponsorAccount: PublicKey;
   thisProgramId: string;
   wallet: WalletAdapter;
 }
@@ -59,14 +62,17 @@ export const expressCheckout = async (
     connection,
     merchantAccount,
     mint,
+    programOwnerAccount,
     orderId,
     thisProgramId,
     secret,
+    sponsorAccount,
     wallet,
   } = params;
   if (!wallet.publicKey) {
     return failure(new Error('Wallet not connected'));
   }
+  const data = params.data || null;
   const programIdKey = new PublicKey(thisProgramId);
   const orderAccount = await getOrderAccountPubkey(orderId, wallet.publicKey, programIdKey);
   const promiseResults = await Promise.all([
@@ -88,6 +94,8 @@ export const expressCheckout = async (
           { pubkey: merchantAccount, isSigner: false, isWritable: false },
           { pubkey: sellerTokenAccount[0], isSigner: false, isWritable: true },
           { pubkey: buyerTokenAccount, isSigner: false, isWritable: true },
+          { pubkey: programOwnerAccount, isSigner: false, isWritable: true },
+          { pubkey: sponsorAccount, isSigner: false, isWritable: true },
           { pubkey: mint, isSigner: false, isWritable: false },
           { pubkey: pda[0], isSigner: false, isWritable: false },
           { pubkey: TOKEN_PROGRAM_ID, isSigner: false, isWritable: false },
@@ -102,6 +110,7 @@ export const expressCheckout = async (
               amount,
               order_id: orderId,
               secret,
+              data,
             }).encode()
           ),
         }).encode(),

@@ -10,7 +10,7 @@
   } from '../stores';
   import type { UserToken } from '../stores';
   import { expressCheckout } from '../instructions/express_checkout';
-  import { MAX } from '../helpers/constants';
+  import { MAX, PROGRAM_OWNER } from '../helpers/constants';
   import TrasactionResult from './TrasactionResult.svelte';
 
   let checkoutPromise: Promise<void | string> | null = null;
@@ -32,7 +32,9 @@
             merchantAccount: $merchant.address,
             mint: new PublicKey(buyerToken.account.data.parsed.info.mint),
             orderId,
+            programOwnerAccount: new PublicKey(PROGRAM_OWNER),
             secret,
+            sponsorAccount: $merchant.account.sponsorPubkey,
             thisProgramId: $globalProgramId,
             wallet: $adapter,
           })
