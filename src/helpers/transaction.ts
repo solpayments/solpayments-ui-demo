@@ -1,7 +1,7 @@
 import type { Account, Connection, Transaction, TransactionSignature } from '@solana/web3.js';
 import type { WalletAdapter } from './types';
 import { failure, success, Result } from './result';
-import { MAX, SINGLE } from './constants';
+import { FINALIZED, PROCESSED } from './constants';
 import { addTransaction, updateTransaction, TxStatus } from '../stores/transaction';
 
 export const awaitTransactionSignatureConfirmation = (
@@ -61,7 +61,7 @@ export async function signAndSendTransaction(
   }
 
   try {
-    transaction.recentBlockhash = (await connection.getRecentBlockhash(MAX)).blockhash;
+    transaction.recentBlockhash = (await connection.getRecentBlockhash(FINALIZED)).blockhash;
   } catch (error) {
     return failure(error);
   }
@@ -86,7 +86,7 @@ export async function signAndSendTransaction(
   let result;
   try {
     result = await connection.sendRawTransaction(rawTransaction, {
-      preflightCommitment: SINGLE,
+      preflightCommitment: PROCESSED,
     });
   } catch (error) {
     return failure(error);
