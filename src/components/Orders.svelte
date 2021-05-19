@@ -11,7 +11,7 @@
   } from '../stores';
   import { tokenMap } from '../stores/tokenRegistry';
   import { getOrderAccounts } from '../helpers/api';
-  import { SINGLE_GOSSIP } from '../helpers/constants';
+  import { PROCESSED } from '../helpers/constants';
 
   let ordersPromise: Promise<any> | null = null;
   export let ordersTimeout = 10000;
@@ -19,7 +19,7 @@
   const loadOrders = () => {
     if ($adapter && $adapter.publicKey && $merchant) {
       ordersPromise = getOrderAccounts({
-        connection: new Connection($solanaNetwork, SINGLE_GOSSIP),
+        connection: new Connection($solanaNetwork, PROCESSED),
         merchantKey: $merchant.address,
         programId: $globalProgramId,
         tokenRegistry: $tokenMap,

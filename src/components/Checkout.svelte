@@ -10,7 +10,7 @@
   } from '../stores';
   import type { UserToken } from '../stores';
   import { expressCheckout } from '../instructions/express_checkout';
-  import { MAX, PROGRAM_OWNER } from '../helpers/constants';
+  import { FINALIZED, PROGRAM_OWNER } from '../helpers/constants';
   import TrasactionResult from './TrasactionResult.svelte';
 
   let checkoutPromise: Promise<void | string> | null = null;
@@ -28,7 +28,7 @@
         ? expressCheckout({
             amount: amount * 10 ** buyerToken.account.data.parsed.info.tokenAmount.decimals,
             buyerTokenAccount: buyerToken.pubkey,
-            connection: new Connection($solanaNetwork, MAX),
+            connection: new Connection($solanaNetwork, FINALIZED),
             merchantAccount: $merchant.address,
             mint: new PublicKey(buyerToken.account.data.parsed.info.mint),
             orderId,

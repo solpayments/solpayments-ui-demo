@@ -1,9 +1,9 @@
 export const ENUM = 'enum';
 export const INSTRUCTION = 'instruction';
 export const STRUCT = 'struct';
-export const MAX = 'max';
-export const SINGLE = 'single';
-export const SINGLE_GOSSIP = 'singleGossip';
+export const FINALIZED = 'finalized';
+export const CONFIRMED = 'confirmed';
+export const PROCESSED = 'processed';
 export const MAX_SEED_LEN = 32;
 export const AMOUNT = 'amount';
 export const U64 = 'u64';

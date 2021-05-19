@@ -4,7 +4,7 @@
   import { adapter, connected, userTokens, solanaNetwork, updateUserTokens } from '../stores';
   import { tokenMap } from '../stores/tokenRegistry';
   import { fetchTokenAccounts } from '../helpers/api';
-  import { SINGLE_GOSSIP } from '../helpers/constants';
+  import { PROCESSED } from '../helpers/constants';
   import { TOKEN_PROGRAM_ID } from '../helpers/solana';
   import type { TokenFromApi } from '../helpers/solana';
 
@@ -14,7 +14,7 @@
   const loadTokens = () => {
     if ($adapter && $adapter.publicKey) {
       tokensPromise = fetchTokenAccounts({
-        connection: new Connection($solanaNetwork, SINGLE_GOSSIP),
+        connection: new Connection($solanaNetwork, PROCESSED),
         ownerKey: $adapter.publicKey,
         programId: TOKEN_PROGRAM_ID,
       }).then((result) => {
