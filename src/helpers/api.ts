@@ -64,9 +64,9 @@ export const getMerchantByAddress = async (
 };
 
 /** Gets merchant accounts */
-export const getMerchantAccount = async (
+export const getMerchantAccounts = async (
   params: GetMerchantAccountParams
-): Promise<Result<Merchant | null>> => {
+): Promise<Result<Merchant[] | null>> => {
   const { connection, ownerKey, programId } = params;
   const programIdKey = new PublicKey(programId);
 
@@ -77,20 +77,21 @@ export const getMerchantAccount = async (
         { memcmp: { offset: MERCHANT_ACC_OWNER_FIELD_OFFSET, bytes: ownerKey.toBase58() } },
       ],
     });
-
     if (result.length < 1) {
       return success(null);
     }
-
-    const merchantData = MERCHANT_LAYOUT.decode(result[0].account.data);
-
-    return success({
-      address: result[0].pubkey,
-      account: {
-        ...merchantData,
-        fee: getUiAmount(merchantData.fee, SOL_DECIMALS),
-      },
-    });
+    return success(
+      result.map((item) => {
+        const merchantData = MERCHANT_LAYOUT.decode(item.account.data);
+        return {
+          address: result[0].pubkey,
+          account: {
+            ...merchantData,
+            fee: getUiAmount(merchantData.fee, SOL_DECIMALS),
+          },
+        };
+      })
+    );
   } catch (error) {
     return failure(error);
   }
