@@ -20,8 +20,8 @@ import {
 export enum InstructionType {
   RegisterMerchant = 'RegisterMerchant',
   ExpressCheckout = 'ExpressCheckout',
-  Subscribe = 'Subscribe',
   Withdraw = 'Withdraw',
+  Subscribe = 'Subscribe',
 }
 
 export class Instruction extends Layout {
@@ -42,6 +42,7 @@ export class Instruction extends Layout {
             [InstructionType.RegisterMerchant, [len]],
             [InstructionType.ExpressCheckout, [len]],
             [InstructionType.Withdraw, [len]],
+            [InstructionType.Subscribe, [len]],
           ],
         },
       ],
@@ -80,6 +81,15 @@ export class InstructionData extends Layout {
         },
       ],
     ]),
+    [InstructionType.Withdraw]: new Map([
+      [
+        InstructionData,
+        {
+          kind: STRUCT,
+          fields: [],
+        },
+      ],
+    ]),
     [InstructionType.Subscribe]: new Map([
       [
         InstructionData,
@@ -89,15 +99,6 @@ export class InstructionData extends Layout {
             [NAME, STRING],
             [DATA, { kind: OPTION, type: STRING }],
           ],
-        },
-      ],
-    ]),
-    [InstructionType.Withdraw]: new Map([
-      [
-        InstructionData,
-        {
-          kind: STRUCT,
-          fields: [],
         },
       ],
     ]),
