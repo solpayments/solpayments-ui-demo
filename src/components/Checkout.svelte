@@ -3,7 +3,6 @@
   import {
     adapter,
     connected,
-    merchantStore as merchant,
     programId as globalProgramId,
     solanaNetwork,
     userTokens,
@@ -11,6 +10,7 @@
   import type { UserToken } from '../stores';
   import { expressCheckout } from '../instructions/express_checkout';
   import { FINALIZED, PROGRAM_OWNER } from '../helpers/constants';
+  import type { Merchant } from '../helpers/layout';
   import TrasactionResult from './TrasactionResult.svelte';
 
   let checkoutPromise: Promise<void | string> | null = null;
@@ -20,21 +20,23 @@
   export let secret: string;
   export let buyerToken: UserToken;
   export let amount: number;
+  export let merchant: Merchant;
 
   const handleCheckoutPromise = () => {
     checkoutProcessing = true;
+    checkoutPromise = null;
     checkoutPromise =
-      $adapter && $merchant && $userTokens.length > 0
+      $adapter && $adapter.publicKey && merchant && $userTokens.length > 0
         ? expressCheckout({
             amount: amount * 10 ** buyerToken.account.data.parsed.info.tokenAmount.decimals,
             buyerTokenAccount: buyerToken.pubkey,
             connection: new Connection($solanaNetwork, FINALIZED),
-            merchantAccount: $merchant.address,
+            merchantAccount: merchant.address,
             mint: new PublicKey(buyerToken.account.data.parsed.info.mint),
             orderId,
             programOwnerAccount: new PublicKey(PROGRAM_OWNER),
             secret,
-            sponsorAccount: $merchant.account.sponsor,
+            sponsorAccount: merchant.account.sponsor,
             thisProgramId: $globalProgramId,
             wallet: $adapter,
           })
@@ -53,7 +55,7 @@
 </script>
 
 <main>
-  {#if $connected && $merchant}
+  {#if $connected && merchant}
     {#if $userTokens.length > 0}
       {#if !checkoutResultTxId}
         <button on:click={() => handleCheckoutPromise()} disabled={checkoutProcessing}>
