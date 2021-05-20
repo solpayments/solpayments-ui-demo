@@ -1,35 +1,41 @@
 <script lang="ts">
   import { onMount } from 'svelte';
-  import { Connection } from '@solana/web3.js';
+  import { Connection, PublicKey } from '@solana/web3.js';
   import {
     adapter,
     connected,
-    merchantStore as merchant,
     orderAccounts,
     programId as globalProgramId,
     solanaNetwork,
   } from '../stores';
   import { tokenMap } from '../stores/tokenRegistry';
   import { getOrderAccounts } from '../helpers/api';
-  import { PROCESSED } from '../helpers/constants';
+  import { MERCHANT, PROCESSED } from '../helpers/constants';
 
   let ordersPromise: Promise<any> | null = null;
   export let ordersTimeout = 10000;
+  export let merchantSeed: string = MERCHANT;
 
   const loadOrders = () => {
-    if ($adapter && $adapter.publicKey && $merchant) {
-      ordersPromise = getOrderAccounts({
-        connection: new Connection($solanaNetwork, PROCESSED),
-        merchantKey: $merchant.address,
-        programId: $globalProgramId,
-        tokenRegistry: $tokenMap,
-      }).then((result) => {
-        ordersPromise = null;
-        if (result.error) {
-          throw result.error;
-        } else {
-          orderAccounts.update(() => result.value || []);
-        }
+    if ($adapter && $adapter.publicKey) {
+      PublicKey.createWithSeed(
+        $adapter.publicKey,
+        merchantSeed,
+        new PublicKey($globalProgramId)
+      ).then((merchantAddress) => {
+        ordersPromise = getOrderAccounts({
+          connection: new Connection($solanaNetwork, PROCESSED),
+          merchantKey: merchantAddress,
+          programId: $globalProgramId,
+          tokenRegistry: $tokenMap,
+        }).then((result) => {
+          ordersPromise = null;
+          if (result.error) {
+            throw result.error;
+          } else {
+            orderAccounts.update(() => result.value || []);
+          }
+        });
       });
     }
   };
