@@ -8,6 +8,7 @@
   import Wallet from './components/Wallet.svelte';
   import MerchantComponent from './components/Merchant.svelte';
   import ExpressCheckout from './components/Checkout.svelte';
+  import Subscribe from './components/Subscribe.svelte';
   import Tokens from './components/Tokens.svelte';
   import Orders from './components/Orders.svelte';
 
@@ -37,6 +38,9 @@
 
   const merchant = derived(merchantRegistry, ($merchantRegistry) => {
     return $merchantRegistry.get('Ahe29QiZfwGsMAt8BjRxuBLLWsdLVAyLzBwarVCWx2Rf');
+  });
+  const subscriptionMerchant = derived(merchantRegistry, ($merchantRegistry) => {
+    return $merchantRegistry.get('52KY1298YwhahgedoUuPzvuWf5Af64RXaCQM4PdWMjCn');
   });
 
   solanaNetwork.update(() => 'http://localhost:8899');
@@ -76,6 +80,14 @@
     <hr />
     <h3>Subscription</h3>
     <MerchantComponent seed={subscriptionSeed} data={subscriptionPackages} />
+
+    {#if $selectedToken}
+      {#if $subscriptionMerchant}
+        <Subscribe merchant={$subscriptionMerchant} {amount} buyerToken={$selectedToken} />
+      {/if}
+    {:else}
+      <p style="color: red">Token account not found.</p>
+    {/if}
 
     <hr />
     <h3>Orders</h3>

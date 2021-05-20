@@ -4,10 +4,10 @@ const app = new App({
   target: document.body,
   props: {
     name: 'world',
-    orderId: 'order7',
+    orderId: 'order1',
     secret: 'xyz',
-    amount: 15000,
-    mintAddress: '8wVXB2gyZjmXCbLEeMQF9K8xho5tWpX5a2Vkxhmj5n84',
+    amount: 15,
+    mintAddress: '7GDLmV5Kc6V8UggJjrsiJi8RkxkYwCypcdzmvkgg57mP',
   },
 });
 
