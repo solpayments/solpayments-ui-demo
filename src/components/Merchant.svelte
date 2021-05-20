@@ -1,13 +1,8 @@
 <script lang="ts">
   import { derived } from 'svelte/store';
   import { Connection, PublicKey } from '@solana/web3.js';
-  import {
-    adapter,
-    connected,
-    merchantStore as merchant,
-    programId as globalProgramId,
-    solanaNetwork,
-  } from '../stores';
+  import { adapter, connected, programId as globalProgramId, solanaNetwork } from '../stores';
+  import { merchantRegistry } from '../stores/merchants';
   import { getMerchantByAddress } from '../helpers/api';
   import type { Packages } from '../helpers/data';
   import { registerMerchant } from '../instructions/register';
@@ -20,6 +15,7 @@
   export let data: Packages | undefined = undefined;
   let registrationProcessing = false;
   let registrationResultTxId: string | undefined = undefined;
+  let merchantAddress: PublicKey | null = null;
 
   const fetchMerchant = (connectedWallet: Adapter) => {
     if (connectedWallet && connectedWallet.publicKey) {
@@ -27,18 +23,23 @@
         connectedWallet.publicKey,
         seed,
         new PublicKey($globalProgramId)
-      ).then((merchantAddress) => {
+      ).then((address) => {
+        // update local address state
+        merchantAddress = address;
         getMerchantByAddress({
           connection: new Connection($solanaNetwork, PROCESSED),
-          publicKey: merchantAddress,
+          publicKey: address,
         }).then((result) => {
           // update the merchant store with the merchant object
           if (result.error) {
             throw result.error;
           } else {
-            if (result.value) {
-              merchant.update(() => result.value);
-            }
+            merchantRegistry.update((existing) => {
+              if (result.value) {
+                existing.set(result.value.address.toString(), result.value);
+              }
+              return existing;
+            });
           }
         });
       });
@@ -46,12 +47,21 @@
   };
 
   const getMerchantOrBust = async (connectedWallet: Adapter) => {
-    while (!$merchant) {
-      fetchMerchant(connectedWallet);
-      // sleep
-      await new Promise((r) => setTimeout(r, merchantTimeout));
+    if (merchantAddress) {
+      while (!$merchantRegistry.get(merchantAddress.toString())) {
+        fetchMerchant(connectedWallet);
+        // sleep
+        await new Promise((r) => setTimeout(r, merchantTimeout));
+      }
     }
   };
+
+  const merchant = derived(merchantRegistry, ($merchantRegistry) => {
+    if ($merchantRegistry && merchantAddress) {
+      return $merchantRegistry.get(merchantAddress.toString()) || null;
+    }
+    return null;
+  });
 
   const merchantPromise = derived(adapter, ($adapter) => {
     if ($adapter && $adapter.publicKey) {
