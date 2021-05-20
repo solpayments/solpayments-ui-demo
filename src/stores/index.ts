@@ -1,6 +1,6 @@
 import { derived, writable } from 'svelte/store';
 import type { WalletAdapter } from '../helpers/types';
-import type { Merchant, OrderInfo } from '../helpers/layout';
+import type { OrderInfo } from '../helpers/layout';
 import type { TokenFromApi } from '../helpers/solana';
 import { abbreviateAddress } from '../helpers/utils';
 import type { TokenMap } from './tokenRegistry';
@@ -22,8 +22,6 @@ export const connected = derived(adapter, ($adapter) => {
   }
   return false;
 });
-/** the wallet adapter from sollet, etc */
-export const merchantStore = writable<Merchant | null>(null);
 /** the user's tokens */
 export const userTokens = writable<UserToken[]>([]);
 /** the order accounts */
