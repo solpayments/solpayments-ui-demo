@@ -1,10 +1,10 @@
 <script lang="ts">
-  import { PublicKey } from '@solana/web3.js';
   import { derived } from 'svelte/store';
   import { onMount } from 'svelte';
   import type { Packages } from './helpers/data';
   import { connected, solanaNetwork, userTokens } from './stores';
   import { getTokenRegistry } from './stores/tokenRegistry';
+  import { merchantRegistry } from './stores/merchants';
   import Wallet from './components/Wallet.svelte';
   import MerchantComponent from './components/Merchant.svelte';
   import ExpressCheckout from './components/Checkout.svelte';
@@ -27,13 +27,17 @@
     return null;
   });
 
-  const subscriptionSeed = 'merchant';
+  const subscriptionSeed = 'demo';
   const subscriptionPackages: Packages = {
     packages: [
       { duration: 60 * 60 * 24 * 30, name: 'basic', price: 100000 },
       { duration: 60 * 60 * 24 * 30, name: 'advanced', price: 200000 },
     ],
   };
+
+  const merchant = derived(merchantRegistry, ($merchantRegistry) => {
+    return $merchantRegistry.get('Ahe29QiZfwGsMAt8BjRxuBLLWsdLVAyLzBwarVCWx2Rf');
+  });
 
   solanaNetwork.update(() => 'http://localhost:8899');
   onMount(async () => getTokenRegistry());
@@ -56,7 +60,15 @@
     <Tokens />
 
     {#if $selectedToken}
-      <ExpressCheckout {orderId} {secret} {amount} buyerToken={$selectedToken} />
+      {#if $merchant}
+        <ExpressCheckout
+          merchant={$merchant}
+          {orderId}
+          {secret}
+          {amount}
+          buyerToken={$selectedToken}
+        />
+      {/if}
     {:else}
       <p style="color: red">Token account not found.</p>
     {/if}
