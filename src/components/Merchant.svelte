@@ -8,50 +8,39 @@
     programId as globalProgramId,
     solanaNetwork,
   } from '../stores';
-  import { getMerchantAccount, getMerchantByAddress } from '../helpers/api';
+  import { getMerchantByAddress } from '../helpers/api';
   import type { Packages } from '../helpers/data';
   import { registerMerchant } from '../instructions/register';
-  import { FINALIZED, PROCESSED } from '../helpers/constants';
+  import { FINALIZED, MERCHANT, PROCESSED } from '../helpers/constants';
   import TrasactionResult from './TrasactionResult.svelte';
   import type { Adapter } from '../stores';
 
   export let merchantTimeout = 2000;
-  export let seed: string | undefined = undefined;
+  export let seed: string = MERCHANT;
   export let data: Packages | undefined = undefined;
   let registrationProcessing = false;
   let registrationResultTxId: string | undefined = undefined;
 
   const fetchMerchant = (connectedWallet: Adapter) => {
     if (connectedWallet && connectedWallet.publicKey) {
-      if (seed) {
-        PublicKey.createWithSeed(
-          connectedWallet.publicKey,
-          seed,
-          new PublicKey($globalProgramId)
-        ).then((val) => {
-          getMerchantByAddress({
-            connection: new Connection($solanaNetwork, PROCESSED),
-            publicKey: val,
-          }).then((xxx) => {
-            console.log('>>>>>>>>>>>>>>>>>>> ', xxx);
-          });
-        });
-      }
-
-      // this promise tries to get the merchant account
-      return getMerchantAccount({
-        connection: new Connection($solanaNetwork, PROCESSED),
-        ownerKey: connectedWallet.publicKey,
-        programId: $globalProgramId,
-      }).then((result) => {
-        // update the merchant store with the merchant object
-        if (result.error) {
-          throw result.error;
-        } else {
-          if (result.value) {
-            merchant.update(() => result.value);
+      PublicKey.createWithSeed(
+        connectedWallet.publicKey,
+        seed,
+        new PublicKey($globalProgramId)
+      ).then((merchantAddress) => {
+        getMerchantByAddress({
+          connection: new Connection($solanaNetwork, PROCESSED),
+          publicKey: merchantAddress,
+        }).then((result) => {
+          // update the merchant store with the merchant object
+          if (result.error) {
+            throw result.error;
+          } else {
+            if (result.value) {
+              merchant.update(() => result.value);
+            }
           }
-        }
+        });
       });
     }
   };
