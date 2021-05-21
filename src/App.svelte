@@ -31,8 +31,9 @@
   const subscriptionSeed = 'demo';
   const subscriptionPackages: Packages = {
     packages: [
-      { duration: 60 * 60 * 24 * 30, name: 'basic', price: 100000 },
-      { duration: 60 * 60 * 24 * 30, name: 'advanced', price: 200000 },
+      { duration: 60 * 10, name: 'basic', price: 1000000 },
+      { duration: 60 * 60 * 24 * 30, name: 'cool', price: 1000000 },
+      { duration: 60 * 60 * 24 * 30, name: 'advanced', price: 2000000 },
     ],
   };
 
