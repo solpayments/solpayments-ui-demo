@@ -9,7 +9,7 @@
   import type { TokenFromApi } from '../helpers/solana';
 
   let tokensPromise: Promise<void | TokenFromApi[]> | null = null;
-  export let tokenTimeout = 5000;
+  export let tokenTimeout = 1000 * 15;
 
   const loadTokens = () => {
     if ($adapter && $adapter.publicKey) {

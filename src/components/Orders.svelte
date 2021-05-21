@@ -13,7 +13,7 @@
   import { MERCHANT, PROCESSED } from '../helpers/constants';
 
   let ordersPromise: Promise<any> | null = null;
-  export let ordersTimeout = 10000;
+  export let ordersTimeout = 1000 * 60;
   export let merchantSeed: string = MERCHANT;
 
   const loadOrders = () => {
