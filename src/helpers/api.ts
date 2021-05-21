@@ -1,4 +1,4 @@
-import { PublicKey } from '@solana/web3.js';
+import { PublicKey, SYSVAR_CLOCK_PUBKEY } from '@solana/web3.js';
 import type { Connection } from '@solana/web3.js';
 import type { Result } from './result';
 import { failure, success } from './result';
@@ -10,7 +10,7 @@ import {
 } from './constants';
 import { MERCHANT_LAYOUT, ORDER_LAYOUT, SUBSCRIPTION_LAYOUT } from '../helpers/layout';
 import type { Merchant, Subscription } from '../helpers/layout';
-import type { TokenApiResult } from '../helpers/solana';
+import type { ClockAccountInfo, ClockInfo, TokenApiResult } from '../helpers/solana';
 import type { OrderInfo } from '../helpers/layout';
 import { getUiAmount } from '../helpers/utils';
 import type { TokenMap } from '../stores/tokenRegistry';
@@ -159,6 +159,20 @@ export const fetchTokenAccounts = async (
     return success(
       await connection.getParsedTokenAccountsByOwner(ownerKey, { programId }, CONFIRMED)
     );
+  } catch (error) {
+    return failure(error);
+  }
+};
+
+/** Gets The Clock account */
+export const getClockAccount = async (
+  connection: Connection
+): Promise<Result<ClockInfo | null>> => {
+  try {
+    const result = await connection.getParsedAccountInfo(SYSVAR_CLOCK_PUBKEY, CONFIRMED);
+    return result.value
+      ? success((result.value as ClockAccountInfo).data.parsed.info)
+      : success(null);
   } catch (error) {
     return failure(error);
   }
