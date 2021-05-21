@@ -1,7 +1,7 @@
 import { derived, writable } from 'svelte/store';
 import type { WalletAdapter } from '../helpers/types';
 import type { OrderInfo } from '../helpers/layout';
-import type { TokenFromApi } from '../helpers/solana';
+import type { ClockInfo, TokenFromApi } from '../helpers/solana';
 import { abbreviateAddress } from '../helpers/utils';
 import type { TokenMap } from './tokenRegistry';
 
@@ -22,6 +22,8 @@ export const connected = derived(adapter, ($adapter) => {
   }
   return false;
 });
+/** the on-chain clock sysvar account */
+export const clock = writable<ClockInfo | undefined>(undefined);
 /** the user's tokens */
 export const userTokens = writable<UserToken[]>([]);
 /** the order accounts */
