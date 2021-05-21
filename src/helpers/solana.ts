@@ -2,6 +2,21 @@ import { PublicKey } from '@solana/web3.js';
 import { enums, Infer } from 'superstruct';
 import type { AccountInfo, ParsedAccountData, RpcResponseAndContext } from '@solana/web3.js';
 
+export interface ClockInfo {
+  epoch: number;
+  epochStartTimestamp: number;
+  leaderScheduleEpoch: number;
+  slot: number;
+  unixTimestamp: number;
+}
+export interface ParsedClockData extends ParsedAccountData {
+  parsed: {
+    info: ClockInfo;
+    type: 'clock';
+  };
+}
+export type ClockAccountInfo = AccountInfo<ParsedClockData>;
+
 export const TOKEN_PROGRAM_ID = new PublicKey('TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA');
 
 export type TokenAccountState = Infer<typeof AccountState>;
