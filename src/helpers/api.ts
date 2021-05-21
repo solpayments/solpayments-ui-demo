@@ -8,8 +8,8 @@ import {
   CONFIRMED,
   SOL_DECIMALS,
 } from './constants';
-import { MERCHANT_LAYOUT, ORDER_LAYOUT } from '../helpers/layout';
-import type { Merchant } from '../helpers/layout';
+import { MERCHANT_LAYOUT, ORDER_LAYOUT, SUBSCRIPTION_LAYOUT } from '../helpers/layout';
+import type { Merchant, Subscription } from '../helpers/layout';
 import type { TokenApiResult } from '../helpers/solana';
 import type { OrderInfo } from '../helpers/layout';
 import { getUiAmount } from '../helpers/utils';
@@ -35,13 +35,13 @@ interface GetTokenAccountParams extends Base {
   programId: PublicKey;
 }
 
-interface GetMerchantByAddressparams extends Base {
+interface GetByAddressParams extends Base {
   publicKey: PublicKey;
 }
 
 /** Gets one merchant account using its address */
 export const getMerchantByAddress = async (
-  params: GetMerchantByAddressparams
+  params: GetByAddressParams
 ): Promise<Result<Merchant | null>> => {
   const { connection, publicKey } = params;
 
@@ -159,6 +159,25 @@ export const fetchTokenAccounts = async (
     return success(
       await connection.getParsedTokenAccountsByOwner(ownerKey, { programId }, CONFIRMED)
     );
+  } catch (error) {
+    return failure(error);
+  }
+};
+
+/** Gets one subscription account using its address */
+export const getSubscriptionByAddress = async (
+  params: GetByAddressParams
+): Promise<Result<Subscription | null>> => {
+  const { connection, publicKey } = params;
+  try {
+    const result = await connection.getAccountInfo(publicKey, CONFIRMED);
+    if (!result) {
+      return success(null);
+    }
+    return success({
+      address: publicKey,
+      account: SUBSCRIPTION_LAYOUT.decode(result.data),
+    });
   } catch (error) {
     return failure(error);
   }
