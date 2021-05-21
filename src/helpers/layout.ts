@@ -42,6 +42,22 @@ export interface OrderAccount {
   data: string;
 }
 
+export enum SubscriptionStatus {
+  Uninitialized = 0,
+  Initialized = 1,
+}
+
+export interface SubscriptionAccount {
+  status: number;
+  owner: PublicKey;
+  merchant: PublicKey;
+  name: string;
+  joined: number;
+  period_start: number;
+  period_end: number;
+  data: string;
+}
+
 export interface OrderInfo {
   pubkey: PublicKey;
   account: AccountInfo<OrderAccount>;
@@ -69,3 +85,14 @@ export const ORDER_LAYOUT = struct([
   str('secret'),
   str('data'),
 ]) as Layout<OrderAccount>;
+
+export const SUBSCRIPTION_LAYOUT = struct([
+  u8('status'),
+  publicKey('owner'),
+  publicKey('merchant'),
+  str('name'),
+  i64('joined'),
+  i64('period_start'),
+  i64('period_end'),
+  str('data'),
+]) as Layout<SubscriptionAccount>;
