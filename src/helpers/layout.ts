@@ -58,6 +58,11 @@ export interface SubscriptionAccount {
   data: string;
 }
 
+export interface Subscription {
+  address: PublicKey;
+  account: SubscriptionAccount;
+}
+
 export interface OrderInfo {
   pubkey: PublicKey;
   account: AccountInfo<OrderAccount>;
