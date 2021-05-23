@@ -6,10 +6,12 @@ import {
   DATA,
   ENUM,
   FEE,
+  I64,
   INSTRUCTION,
   NAME,
   OPTION,
   ORDER_ID,
+  QUANTITY,
   SECRET,
   SEED,
   STRING,
@@ -22,6 +24,7 @@ export enum InstructionType {
   ExpressCheckout = 'ExpressCheckout',
   Withdraw = 'Withdraw',
   Subscribe = 'Subscribe',
+  RenewSubscription = 'RenewSubscription',
 }
 
 export class Instruction extends Layout {
@@ -43,6 +46,7 @@ export class Instruction extends Layout {
             [InstructionType.ExpressCheckout, [len]],
             [InstructionType.Withdraw, [len]],
             [InstructionType.Subscribe, [len]],
+            [InstructionType.RenewSubscription, [len]],
           ],
         },
       ],
@@ -98,6 +102,17 @@ export class InstructionData extends Layout {
           fields: [
             [NAME, STRING],
             [DATA, { kind: OPTION, type: STRING }],
+          ],
+        },
+      ],
+    ]),
+    [InstructionType.RenewSubscription]: new Map([
+      [
+        InstructionData,
+        {
+          kind: STRUCT,
+          fields: [
+            [QUANTITY, I64],
           ],
         },
       ],
