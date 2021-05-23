@@ -1,5 +1,6 @@
 <script lang="ts">
   import { derived } from 'svelte/store';
+  import type { Writable } from 'svelte/store';
   import { Connection, PublicKey } from '@solana/web3.js';
   import { adapter, connected, programId as globalProgramId, solanaNetwork } from '../stores';
   import { merchantRegistry } from '../stores/merchants';
@@ -13,9 +14,9 @@
   export let merchantTimeout = 2000;
   export let seed: string = MERCHANT;
   export let data: Packages | undefined = undefined;
+  export let addressStore: Writable<PublicKey | undefined>;
   let registrationProcessing = false;
   let registrationResultTxId: string | undefined = undefined;
-  let merchantAddress: PublicKey | null = null;
 
   const fetchMerchant = (connectedWallet: Adapter) => {
     if (connectedWallet && connectedWallet.publicKey) {
@@ -24,8 +25,8 @@
         seed,
         new PublicKey($globalProgramId)
       ).then((address) => {
-        // update local address state
-        merchantAddress = address;
+        // update this merchant's address store
+        addressStore.set(address);
         getMerchantByAddress({
           connection: new Connection($solanaNetwork, PROCESSED),
           publicKey: address,
@@ -47,8 +48,8 @@
   };
 
   const getMerchantOrBust = async (connectedWallet: Adapter) => {
-    if (merchantAddress) {
-      while (!$merchantRegistry.get(merchantAddress.toString())) {
+    if ($addressStore) {
+      while (!$merchantRegistry.get($addressStore.toString())) {
         fetchMerchant(connectedWallet);
         // sleep
         await new Promise((r) => setTimeout(r, merchantTimeout));
@@ -57,8 +58,8 @@
   };
 
   const merchant = derived(merchantRegistry, ($merchantRegistry) => {
-    if ($merchantRegistry && merchantAddress) {
-      return $merchantRegistry.get(merchantAddress.toString()) || null;
+    if ($merchantRegistry && $addressStore) {
+      return $merchantRegistry.get($addressStore.toString()) || null;
     }
     return null;
   });
