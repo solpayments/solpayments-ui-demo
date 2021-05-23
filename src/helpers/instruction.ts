@@ -111,9 +111,7 @@ export class InstructionData extends Layout {
         InstructionData,
         {
           kind: STRUCT,
-          fields: [
-            [QUANTITY, I64],
-          ],
+          fields: [[QUANTITY, I64]],
         },
       ],
     ]),
