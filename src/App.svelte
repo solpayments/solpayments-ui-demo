@@ -1,5 +1,6 @@
 <script lang="ts">
-  import { derived } from 'svelte/store';
+  import type { PublicKey } from '@solana/web3.js';
+  import { derived, writable } from 'svelte/store';
   import { onMount } from 'svelte';
   import type { Packages } from './helpers/data';
   import { connected, solanaNetwork, userTokens } from './stores';
@@ -11,6 +12,7 @@
   import Subscribe from './components/Subscribe.svelte';
   import Tokens from './components/Tokens.svelte';
   import Orders from './components/Orders.svelte';
+  import SubscriptionDemo from './demos/Subscription.svelte';
 
   export let name: string;
   export let orderId: string;
@@ -36,16 +38,37 @@
     ],
   };
 
+  const addressStore1 = writable<PublicKey | undefined>(undefined);
+  const addressStore2 = writable<PublicKey | undefined>(undefined);
+
   const merchant = derived(merchantRegistry, ($merchantRegistry) => {
-    return $merchantRegistry.get('Ahe29QiZfwGsMAt8BjRxuBLLWsdLVAyLzBwarVCWx2Rf');
+    if (addressStore1 && $addressStore1) {
+      return $merchantRegistry.get($addressStore1.toString());
+    }
+    return null;
   });
   const subscriptionMerchant = derived(merchantRegistry, ($merchantRegistry) => {
-    return $merchantRegistry.get('52KY1298YwhahgedoUuPzvuWf5Af64RXaCQM4PdWMjCn');
+    if (addressStore2 && $addressStore2) {
+      return $merchantRegistry.get($addressStore2.toString());
+    }
+    return null;
   });
 
   solanaNetwork.update(() => 'http://localhost:8899');
   onMount(async () => getTokenRegistry());
 </script>
+
+<!-- <main>
+  <Wallet />
+  <Tokens />
+  {#if $selectedToken}
+    <SubscriptionDemo
+      subscriptionName="demo2"
+      tokenAccount={$selectedToken}
+      packages={subscriptionPackages}
+    />
+  {/if}
+</main> -->
 
 <main>
   <h1>Hello {name}!</h1>
@@ -58,7 +81,7 @@
 
   {#if $connected}
     <h3>Register Merchant</h3>
-    <MerchantComponent />
+    <MerchantComponent addressStore={addressStore1} />
 
     <h3>Tokens</h3>
     <Tokens />
@@ -79,7 +102,11 @@
 
     <hr />
     <h3>Subscription</h3>
-    <MerchantComponent seed={subscriptionName} data={subscriptionPackages} />
+    <MerchantComponent
+      addressStore={addressStore2}
+      seed={subscriptionName}
+      data={subscriptionPackages}
+    />
 
     {#if $selectedToken}
       {#if $subscriptionMerchant}
