@@ -12,6 +12,7 @@
   } from '../stores';
   import type { Adapter, UserToken } from '../stores';
   import { subscriptionRegistry } from '../stores/subscriptions';
+  import { renew_subscription } from '../instructions/renew';
   import { subscribe } from '../instructions/subscribe';
   import { FINALIZED, PROCESSED, PROGRAM_OWNER } from '../helpers/constants';
   import { getClockAccount, getSubscriptionByAddress } from '../helpers/api';
@@ -67,8 +68,13 @@
     return null;
   });
 
-  const getSubscriptionOrBust = async () => {
-    while (!$subscription) {
+  const getSubscriptionOrBust = async (force: boolean = false) => {
+    // try and get subscription if we dont have it or if its expired
+    while (
+      !$subscription ||
+      force ||
+      ($clock && $clock.unixTimestamp > $subscription.account.period_end)
+    ) {
       fetchSubscription($adapter);
       // sleep
       await new Promise((r) => setTimeout(r, subscriptionTimeout));
@@ -79,7 +85,7 @@
     subscriptionProcessing = true;
     subscriptionPromise = null;
     subscriptionPromise =
-      $adapter && $adapter.publicKey && merchant && $userTokens.length > 0
+      $adapter && $adapter.publicKey && merchant && buyerToken
         ? subscribe({
             amount: subscriptionPackage.price,
             buyerTokenAccount: buyerToken.pubkey,
@@ -90,6 +96,37 @@
             programOwnerAccount: new PublicKey(PROGRAM_OWNER),
             sponsorAccount: merchant.account.sponsor,
             subscriptionAddress,
+            thisProgramId: $globalProgramId,
+            wallet: $adapter,
+          })
+            .then((result) => {
+              if (result.error) {
+                throw result.error;
+              }
+              subscriptionResultTxId = result.value;
+              return result.value;
+            })
+            .finally(() => {
+              subscriptionProcessing = false;
+            })
+        : null;
+  };
+
+  const handleRenewSubscriptionPromise = () => {
+    subscriptionProcessing = true;
+    subscriptionPromise = null;
+    subscriptionPromise =
+      $adapter && $adapter.publicKey && merchant && subscriptionAddress && buyerToken
+        ? renew_subscription({
+            amount: subscriptionPackage.price,
+            buyerTokenAccount: buyerToken.pubkey,
+            connection: new Connection($solanaNetwork, FINALIZED),
+            merchantAccount: merchant.address,
+            mint: new PublicKey(buyerToken.account.data.parsed.info.mint),
+            name,
+            programOwnerAccount: new PublicKey(PROGRAM_OWNER),
+            sponsorAccount: merchant.account.sponsor,
+            subscriptionAccount: subscriptionAddress,
             thisProgramId: $globalProgramId,
             wallet: $adapter,
           })
@@ -130,19 +167,29 @@
   {#if $connected && merchant && buyerToken}
     {#if !subscriptionResultTxId}
       <!-- TODO show ui friendly amount -->
-      <button on:click={() => handleSubscriptionPromise()} disabled={subscriptionProcessing}>
-        {#if subscriptionProcessing}Processing{:else}
-          Subscribe to {subscriptionPackage.name} for {subscriptionPackage.price} {buyerToken.name}
-        {/if}
-      </button>
+      {#if $subscription}
+        <button on:click={() => handleRenewSubscriptionPromise()} disabled={subscriptionProcessing}>
+          {#if subscriptionProcessing}Processing{:else}
+            Renew {subscriptionPackage.name} for {subscriptionPackage.price}
+            {buyerToken.name}
+          {/if}
+        </button>
+      {:else}
+        <button on:click={() => handleSubscriptionPromise()} disabled={subscriptionProcessing}>
+          {#if subscriptionProcessing}Processing{:else}
+            Subscribe to {subscriptionPackage.name} for {subscriptionPackage.price}
+            {buyerToken.name}
+          {/if}
+        </button>
+      {/if}
       <p>Duration {subscriptionPackage.duration} seconds</p>
     {/if}
 
     {#if subscriptionPromise}
       {#await subscriptionPromise}
-        <p>subscribing</p>
+        <p>processing</p>
       {:then txId}
-        <TrasactionResult {txId} />
+        <TrasactionResult {txId} sideEffect={getSubscriptionOrBust(true)} />
       {:catch error}
         <p style="color: red">{error}</p>
       {/await}
