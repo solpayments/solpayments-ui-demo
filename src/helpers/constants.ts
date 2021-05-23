@@ -7,7 +7,6 @@ export const PROCESSED = 'processed';
 export const MAX_SEED_LEN = 32;
 export const AMOUNT = 'amount';
 export const U64 = 'u64';
-export const I64 = 'i64';
 export const ORDER_ID = 'order_id';
 export const SECRET = 'secret';
 export const NAME = 'name';
