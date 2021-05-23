@@ -216,5 +216,7 @@
         Subscription Inactive || ended: {new Date($subscription.account.period_end * 1000)}
       </p>
     {/if}
+  {:else}
+    <p style="color: orange">Not subscribed to {subscriptionPackage.name}</p>
   {/if}
 </main>
