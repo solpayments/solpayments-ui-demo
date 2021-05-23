@@ -115,7 +115,7 @@ export const subscribe = async (params: SubscribeParams): Promise<Result<Transac
   if (result.value) {
     awaitTransactionSignatureConfirmation(
       result.value,
-      InstructionType.ExpressCheckout.toString(),
+      InstructionType.Subscribe.toString(),
       connection
     );
   }
