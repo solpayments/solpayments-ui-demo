@@ -1,25 +1,23 @@
 <script lang="ts">
-  import { derived } from 'svelte/store';
-  import { onMount } from 'svelte';
+  import { derived, writable } from 'svelte/store';
   import type { Packages } from '../helpers/data';
-  import { adapter, connected, solanaNetwork, userTokens } from '../stores';
+  import { connected } from '../stores';
   import type { UserToken } from '../stores';
-  import { getTokenRegistry } from '../stores/tokenRegistry';
   import { merchantRegistry } from '../stores/merchants';
-  import Wallet from './components/Wallet.svelte';
-  import MerchantComponent from './components/Merchant.svelte';
-  import ExpressCheckout from './components/Checkout.svelte';
-  import Subscribe from './components/Subscribe.svelte';
-  import Tokens from './components/Tokens.svelte';
-  import Orders from './components/Orders.svelte';
+  import Wallet from '../components/Wallet.svelte';
+  import MerchantComponent from '../components/Merchant.svelte';
+  import Subscribe from '../components/Subscribe.svelte';
+  import type { PublicKey } from '@solana/web3.js';
 
-  export let merchantAddress: string;
   export let packages: Packages;
   export let subscriptionName: string;
   export let tokenAccount: UserToken;
-
+  const addressStore = writable<PublicKey | undefined>(undefined);
   const subscriptionMerchant = derived(merchantRegistry, ($merchantRegistry) => {
-    return $merchantRegistry.get(merchantAddress);
+    if (addressStore && $addressStore) {
+      return $merchantRegistry.get($addressStore.toString());
+    }
+    return null;
   });
 </script>
 
@@ -28,7 +26,7 @@
   {#if $connected}
     <div class="merchant-account">
       <h2>Subscription Packages</h2>
-      <MerchantComponent seed={subscriptionName} data={packages} />
+      <MerchantComponent {addressStore} seed={subscriptionName} data={packages} />
     </div>
     {#if tokenAccount && $subscriptionMerchant}
       {#each packages.packages as subscriptionPackage}
