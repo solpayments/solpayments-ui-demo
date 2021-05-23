@@ -28,12 +28,11 @@
     return null;
   });
 
-  const subscriptionSeed = 'demo';
+  const subscriptionName = 'demo';
   const subscriptionPackages: Packages = {
     packages: [
-      { duration: 60 * 10, name: 'basic', price: 1000000 },
-      { duration: 60 * 60 * 24 * 30, name: 'cool', price: 1000000 },
-      { duration: 60 * 60 * 24 * 30, name: 'advanced', price: 2000000 },
+      { duration: 60 * 10, name: 'basic', price: 10000000 },
+      { duration: 60 * 60 * 24 * 30, name: 'advanced', price: 20000000 },
     ],
   };
 
@@ -80,11 +79,16 @@
 
     <hr />
     <h3>Subscription</h3>
-    <MerchantComponent seed={subscriptionSeed} data={subscriptionPackages} />
+    <MerchantComponent seed={subscriptionName} data={subscriptionPackages} />
 
     {#if $selectedToken}
       {#if $subscriptionMerchant}
-        <Subscribe merchant={$subscriptionMerchant} {amount} buyerToken={$selectedToken} />
+        <Subscribe
+          merchant={$subscriptionMerchant}
+          {subscriptionName}
+          subscriptionPackage={subscriptionPackages.packages[0]}
+          buyerToken={$selectedToken}
+        />
       {/if}
     {:else}
       <p style="color: red">Token account not found.</p>
