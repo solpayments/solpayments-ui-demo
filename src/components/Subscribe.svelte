@@ -129,6 +129,7 @@
 <main>
   {#if $connected && merchant && buyerToken}
     {#if !subscriptionResultTxId}
+      <!-- TODO show ui friendly amount -->
       <button on:click={() => handleSubscriptionPromise()} disabled={subscriptionProcessing}>
         {#if subscriptionProcessing}Processing{:else}
           Subscribe to {subscriptionPackage.name} for {subscriptionPackage.price} {buyerToken.name}
