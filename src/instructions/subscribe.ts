@@ -25,8 +25,10 @@ interface SubscribeParams {
   data?: string;
   merchantAccount: PublicKey;
   mint: PublicKey /** the mint in use; represents the currency */;
+  name: string;
   programOwnerAccount: PublicKey;
   sponsorAccount: PublicKey;
+  subscriptionAddress?: PublicKey;
   thisProgramId: string;
   wallet: WalletAdapter;
 }
@@ -38,9 +40,11 @@ export const subscribe = async (params: SubscribeParams): Promise<Result<Transac
     connection,
     merchantAccount,
     mint,
+    name,
     programOwnerAccount,
     thisProgramId,
     sponsorAccount,
+    subscriptionAddress,
     wallet,
   } = params;
   if (!wallet.publicKey) {
@@ -48,18 +52,16 @@ export const subscribe = async (params: SubscribeParams): Promise<Result<Transac
   }
   const data = params.data || null;
   const programIdKey = new PublicKey(thisProgramId);
-  const transaction = new Transaction({ feePayer: wallet.publicKey });
-
-  const subscription_name = 'demo';
-  const package_name = 'basic';
-  const name = `${subscription_name}:${package_name}`;
-  const subscriptionKey = await PublicKey.createWithSeed(wallet.publicKey, name, programIdKey);
+  const subscriptionKey =
+    subscriptionAddress || (await PublicKey.createWithSeed(wallet.publicKey, name, programIdKey));
   const orderData: OrderSubscription = {
     subscription: subscriptionKey.toString(),
   };
-  const orderKey = await PublicKey.createWithSeed(wallet.publicKey, package_name, programIdKey);
+  const orderId = `${name}:${new Date().valueOf()}`;
+  const orderKey = await PublicKey.createWithSeed(wallet.publicKey, orderId, programIdKey);
 
   // create and pay for order
+  const transaction = new Transaction({ feePayer: wallet.publicKey });
   try {
     transaction.add(
       await makeExpressCheckoutTransaction({
@@ -68,7 +70,7 @@ export const subscribe = async (params: SubscribeParams): Promise<Result<Transac
         data: JSON.stringify(orderData),
         merchantAccount,
         mint,
-        orderId: package_name,
+        orderId,
         programId: programIdKey,
         programOwnerAccount,
         secret: '',

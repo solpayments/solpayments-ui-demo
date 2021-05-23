@@ -15,24 +15,27 @@
   import { subscribe } from '../instructions/subscribe';
   import { FINALIZED, PROCESSED, PROGRAM_OWNER } from '../helpers/constants';
   import { getClockAccount, getSubscriptionByAddress } from '../helpers/api';
+  import type { Package } from '../helpers/data';
   import type { Merchant } from '../helpers/layout';
   import TrasactionResult from './TrasactionResult.svelte';
 
   export let subscriptionTimeout = 1000 * 10;
   export let clockTimeout = 1000 * 60;
   export let buyerToken: UserToken;
-  export let amount: number;
   export let merchant: Merchant;
+  export let subscriptionName: string;
+  export let subscriptionPackage: Package;
+  const name = `${subscriptionName}:${subscriptionPackage.name}`;
   let subscriptionPromise: Promise<void | string> | null = null;
   let subscriptionProcessing = false;
   let subscriptionResultTxId: string | undefined = undefined;
-  let subscriptionAddress: PublicKey | null = null;
+  let subscriptionAddress: PublicKey | undefined = undefined;
 
   const fetchSubscription = (connectedWallet: Adapter) => {
     if (connectedWallet && connectedWallet.publicKey) {
       PublicKey.createWithSeed(
         connectedWallet.publicKey,
-        'demo:basic',
+        name,
         new PublicKey($globalProgramId)
       ).then((address) => {
         // update local address state
@@ -78,13 +81,15 @@
     subscriptionPromise =
       $adapter && $adapter.publicKey && merchant && $userTokens.length > 0
         ? subscribe({
-            amount: amount * 10 ** buyerToken.account.data.parsed.info.tokenAmount.decimals,
+            amount: subscriptionPackage.price,
             buyerTokenAccount: buyerToken.pubkey,
             connection: new Connection($solanaNetwork, FINALIZED),
             merchantAccount: merchant.address,
             mint: new PublicKey(buyerToken.account.data.parsed.info.mint),
+            name,
             programOwnerAccount: new PublicKey(PROGRAM_OWNER),
             sponsorAccount: merchant.account.sponsor,
+            subscriptionAddress,
             thisProgramId: $globalProgramId,
             wallet: $adapter,
           })
@@ -122,15 +127,14 @@
 </script>
 
 <main>
-  {#if $connected && merchant}
-    {#if $userTokens.length > 0}
-      {#if !subscriptionResultTxId}
-        <button on:click={() => handleSubscriptionPromise()} disabled={subscriptionProcessing}>
-          {#if subscriptionProcessing}Processing{:else}Subscribe Now{/if}
-        </button>
-      {/if}
-    {:else}
-      <p>select a token sir</p>
+  {#if $connected && merchant && buyerToken}
+    {#if !subscriptionResultTxId}
+      <button on:click={() => handleSubscriptionPromise()} disabled={subscriptionProcessing}>
+        {#if subscriptionProcessing}Processing{:else}
+          Subscribe to {subscriptionPackage.name} for {subscriptionPackage.price} {buyerToken.name}
+        {/if}
+      </button>
+      <p>Duration {subscriptionPackage.duration} seconds</p>
     {/if}
 
     {#if subscriptionPromise}
