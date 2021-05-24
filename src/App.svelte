@@ -13,6 +13,7 @@
   import Tokens from './components/Tokens.svelte';
   import Orders from './components/Orders.svelte';
   import SubscriptionDemo from './demos/Subscription.svelte';
+  import ShopDemo from './demos/Shop.svelte';
 
   export let name: string;
   export let orderId: string;
@@ -67,6 +68,7 @@
       tokenAccount={$selectedToken}
       packages={subscriptionPackages}
     />
+    <ShopDemo tokenAccount={$selectedToken} />
   {/if}
 </main> -->
 
@@ -122,8 +124,10 @@
     {/if}
 
     <hr />
-    <h3>Orders</h3>
-    <Orders />
+    {#if addressStore1 && $addressStore1}
+      <h3>Orders</h3>
+      <Orders merchantAddress={$addressStore1} />
+    {/if}
   {:else}
     <p style="color: red">Not connected</p>
   {/if}
