@@ -10,32 +10,26 @@
   } from '../stores';
   import { tokenMap } from '../stores/tokenRegistry';
   import { getOrderAccounts } from '../helpers/api';
-  import { MERCHANT, PROCESSED } from '../helpers/constants';
+  import { PROCESSED } from '../helpers/constants';
 
   let ordersPromise: Promise<any> | null = null;
   export let ordersTimeout = 1000 * 60;
-  export let merchantSeed: string = MERCHANT;
+  export let merchantAddress: PublicKey;
 
   const loadOrders = () => {
-    if ($adapter && $adapter.publicKey) {
-      PublicKey.createWithSeed(
-        $adapter.publicKey,
-        merchantSeed,
-        new PublicKey($globalProgramId)
-      ).then((merchantAddress) => {
-        ordersPromise = getOrderAccounts({
-          connection: new Connection($solanaNetwork, PROCESSED),
-          merchantKey: merchantAddress,
-          programId: $globalProgramId,
-          tokenRegistry: $tokenMap,
-        }).then((result) => {
-          ordersPromise = null;
-          if (result.error) {
-            throw result.error;
-          } else {
-            orderAccounts.update(() => result.value || []);
-          }
-        });
+    if ($adapter && $adapter.publicKey && merchantAddress) {
+      ordersPromise = getOrderAccounts({
+        connection: new Connection($solanaNetwork, PROCESSED),
+        merchantKey: merchantAddress,
+        programId: $globalProgramId,
+        tokenRegistry: $tokenMap,
+      }).then((result) => {
+        ordersPromise = null;
+        if (result.error) {
+          throw result.error;
+        } else {
+          orderAccounts.update(() => result.value || []);
+        }
       });
     }
   };
