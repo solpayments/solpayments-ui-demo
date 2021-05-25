@@ -28,6 +28,11 @@
   background-color: #f4f4f4;
 }
 
+.header li button {
+  display: block;
+  margin-top: initial;
+}
+
 .header .logo {
   display: block;
   float: left;
@@ -110,6 +115,10 @@
   top: 0;
 }
 
+#solpayments {
+  margin-top: 110px;
+}
+
 /* 48em = 768px */
 
 @media (min-width: 48em) {
@@ -121,6 +130,11 @@
     padding: 20px 30px;
   }
 
+  .header li button {
+    display: block;
+    margin-top: 1.4rem;
+  }
+
   .header .menu {
     clear: none;
     float: right;
@@ -130,8 +144,4 @@
   .header .menu-icon {
     display: none;
   }
-}
-
-#solpayments {
-  margin-top: 110px;
 }
