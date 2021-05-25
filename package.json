@@ -61,6 +61,7 @@
     "@solana/web3.js": "^1.4.0",
     "borsh": "^0.3.1",
     "buffer-layout": "^1.2.0",
-    "milligram": "^1.4.1"
+    "milligram": "^1.4.1",
+    "svelte-routing": "^1.6.0"
   }
 }
