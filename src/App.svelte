@@ -6,7 +6,8 @@
   import { connected, solanaNetwork, userTokens } from './stores';
   import { getTokenRegistry } from './stores/tokenRegistry';
   import { merchantRegistry } from './stores/merchants';
-  import Wallet from './components/Wallet.svelte';
+  import Button from './components/Wallet/Button.svelte';
+  import Wallet from './components/Wallet/Wallet.svelte';
   import MerchantComponent from './components/Merchant.svelte';
   import ExpressCheckout from './components/Checkout.svelte';
   import Subscribe from './components/Subscribe.svelte';
@@ -74,63 +75,35 @@
   {/if}
 </main> -->
 
-<main>
-  <h1>Hello {name}!</h1>
-  <p>
-    Visit the <a href="https://svelte.dev/tutorial">Svelte tutorial</a> to learn how to build Svelte
-    apps.
-  </p>
-
-  <Wallet />
-
-  {#if $connected}
-    <h3>Register Merchant</h3>
-    <MerchantComponent addressStore={addressStore1} />
-
-    <h3>Tokens</h3>
-    <Tokens />
-
-    {#if $selectedToken}
-      {#if $merchant}
-        <ExpressCheckout
-          merchant={$merchant}
-          {orderId}
-          {secret}
-          {amount}
-          buyerToken={$selectedToken}
-        />
-      {/if}
-    {:else}
-      <p style="color: red">Token account not found.</p>
-    {/if}
-
-    <hr />
-    <h3>Subscription</h3>
-    <MerchantComponent
-      addressStore={addressStore2}
-      seed={subscriptionName}
-      data={subscriptionPackages}
-    />
-
-    {#if $selectedToken}
-      {#if $subscriptionMerchant}
-        <Subscribe
-          merchant={$subscriptionMerchant}
-          {subscriptionName}
-          subscriptionPackage={subscriptionPackages.packages[0]}
-          buyerToken={$selectedToken}
-        />
-      {/if}
-    {:else}
-      <p style="color: red">Token account not found.</p>
-    {/if}
-
-    <hr />
-    {#if addressStore1 && $addressStore1}
-      <h3>Orders</h3>
-      <Orders merchantAddress={$addressStore1} />
-    {/if}
-  {:else}
-    <p style="color: red">Not connected</p>
-  {/if}
-</main>
+<header class="header">
+  <div class="container">
+    <div class="row">
+      <div class="column">
+        <a href="" class="logo">SolPayments</a>
+        <input class="menu-btn" type="checkbox" id="menu-btn" />
+        <label class="menu-icon" for="menu-btn"><span class="navicon" /></label>
+        <ul class="menu">
+          <li><a href="#work">Our Work</a></li>
+          <li><a href="#about">About</a></li>
+          <li><a href="#careers">Careers</a></li>
+          <li><a href="#contact">Contact</a></li>
+          <Button />
+        </ul>
+      </div>
+    </div>
+  </div>
+</header>
+<div class="container">
+  <div class="row">
+    <div class="column">
+      <div id="solpayments">
+        {#if !$connected}
+          <Wallet />
+        {:else}
+          <h3>Tokens</h3>
+          <Tokens />
+        {/if}
+      </div>
+    </div>
+  </div>
+</div>
