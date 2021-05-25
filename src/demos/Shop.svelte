@@ -3,7 +3,7 @@
   import { connected } from '../stores';
   import type { UserToken } from '../stores';
   import { merchantRegistry } from '../stores/merchants';
-  import Wallet from '../components/Wallet.svelte';
+  import Wallet from '../components/Wallet/Wallet.svelte';
   import MerchantComponent from '../components/Merchant.svelte';
   import ExpressCheckout from '../components/Checkout.svelte';
   import Orders from '../components/Orders.svelte';

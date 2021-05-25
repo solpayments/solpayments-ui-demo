@@ -4,7 +4,7 @@
   import { connected } from '../stores';
   import type { UserToken } from '../stores';
   import { merchantRegistry } from '../stores/merchants';
-  import Wallet from '../components/Wallet.svelte';
+  import Wallet from '../components/Wallet/Wallet.svelte';
   import MerchantComponent from '../components/Merchant.svelte';
   import Subscribe from '../components/Subscribe.svelte';
   import type { PublicKey } from '@solana/web3.js';
