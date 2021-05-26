@@ -88,6 +88,10 @@
   top: -5px;
 }
 
+.tx-sm {
+  font-size: 1.0rem;
+}
+
 /* menu btn */
 
 .header .menu-btn {
