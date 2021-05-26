@@ -8,8 +8,11 @@
   import { TOKEN_PROGRAM_ID } from '../helpers/solana';
   import type { TokenFromApi } from '../helpers/solana';
 
-  let tokensPromise: Promise<void | TokenFromApi[]> | null = null;
+  export let showButton = true;
+  export let showTokens = true;
+  export let showInfo = true;
   export let tokenTimeout = 1000 * 15;
+  let tokensPromise: Promise<void | TokenFromApi[]> | null = null;
 
   const loadTokens = () => {
     if ($adapter && $adapter.publicKey) {
@@ -41,19 +44,19 @@
 
 <main>
   {#if $connected}
-    <button on:click={() => loadTokens()}> Refresh Tokens </button>
+    {#if showButton}
+      <button on:click={() => loadTokens()}> Refresh Tokens </button>
+    {/if}
 
     {#if tokensPromise}
       {#await tokensPromise}
-        <p>loading tokens</p>
+        {#if showInfo}<p>loading tokens</p>{/if}
       {:catch error}
-        <p style="color: red">{error}</p>
+        {#if showInfo}<p style="color: red">{error}</p>{/if}
       {/await}
-    {:else}
-      <p>not refreshing tokens</p>
-    {/if}
+    {:else if showInfo}<p>not refreshing tokens</p>{/if}
 
-    {#if $userTokens}
+    {#if $userTokens && showTokens}
       {#each $userTokens as userToken}
         <p>
           {userToken.name} ||&nbsp;
