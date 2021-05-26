@@ -2,6 +2,7 @@
   import type { PublicKey } from '@solana/web3.js';
   import { derived, writable } from 'svelte/store';
   import { onMount } from 'svelte';
+  import { links, Route, Router } from 'svelte-routing';
   import type { Packages } from './helpers/data';
   import { connected, solanaNetwork, userTokens } from './stores';
   import { getTokenRegistry } from './stores/tokenRegistry';
@@ -15,6 +16,7 @@
   import Orders from './components/Orders.svelte';
   import SubscriptionDemo from './demos/Subscription.svelte';
   import ShopDemo from './demos/Shop.svelte';
+  import Home from './demos/Home.svelte';
   import './styles/normalize.css';
   import './styles/milligram.css';
   import './styles/solpayments.css';
@@ -57,6 +59,7 @@
     }
     return null;
   });
+  export let url = '';
 
   solanaNetwork.update(() => 'http://localhost:8899');
   onMount(async () => getTokenRegistry());
@@ -74,36 +77,53 @@
     <ShopDemo tokenAccount={$selectedToken} />
   {/if}
 </main> -->
-
-<header class="header">
+<Router {url}>
+  <header class="header">
+    <div class="container">
+      <div class="row">
+        <div class="column" use:links>
+          <Router>
+            <a href="/" class="logo">SolPayments</a>
+            <input class="menu-btn" type="checkbox" id="menu-btn" />
+            <label class="menu-icon" for="menu-btn"><span class="navicon" /></label>
+            <ul class="menu">
+              <li><a href="/shop">Shop</a></li>
+              <li><a href="/subscriptions">Subscription</a></li>
+              <Button />
+            </ul>
+          </Router>
+        </div>
+      </div>
+    </div>
+  </header>
   <div class="container">
     <div class="row">
       <div class="column">
-        <a href="" class="logo">SolPayments</a>
-        <input class="menu-btn" type="checkbox" id="menu-btn" />
-        <label class="menu-icon" for="menu-btn"><span class="navicon" /></label>
-        <ul class="menu">
-          <li><a href="#work">Our Work</a></li>
-          <li><a href="#about">About</a></li>
-          <li><a href="#careers">Careers</a></li>
-          <li><a href="#contact">Contact</a></li>
-          <Button />
-        </ul>
+        <div id="solpayments">
+          <!-- <Route path="/"><Home /></Route> -->
+
+          {#if $connected}
+            <Tokens showButton={false} showTokens={false} showInfo={false} />
+          {/if}
+
+          {#if $selectedToken}
+            <ShopDemo tokenAccount={$selectedToken} />
+          {/if}
+
+          {#if $selectedToken}
+            <Route path="/shop">
+              <ShopDemo tokenAccount={$selectedToken} />
+            </Route>
+            <Route path="/subscriptions">
+              <SubscriptionDemo
+                subscriptionName="xxxl"
+                tokenAccount={$selectedToken}
+                packages={subscriptionPackages}
+              />
+            </Route>
+          {/if}
+        </div>
       </div>
     </div>
   </div>
-</header>
-<div class="container">
-  <div class="row">
-    <div class="column">
-      <div id="solpayments">
-        {#if !$connected}
-          <Wallet />
-        {:else}
-          <h3>Tokens</h3>
-          <Tokens />
-        {/if}
-      </div>
-    </div>
-  </div>
-</div>
+</Router>
