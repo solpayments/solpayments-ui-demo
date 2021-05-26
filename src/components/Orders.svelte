@@ -11,10 +11,17 @@
   import { tokenMap } from '../stores/tokenRegistry';
   import { getOrderAccounts } from '../helpers/api';
   import { PROCESSED } from '../helpers/constants';
+  import { OrderStatus } from '../helpers/layout';
+  import { abbreviateAddress } from '../helpers/utils';
 
   let ordersPromise: Promise<any> | null = null;
-  export let ordersTimeout = 1000 * 60;
+  export let ordersTimeout = 1000 * 30;
   export let merchantAddress: PublicKey;
+
+  const getTokenSymbol = (mint: PublicKey): string => {
+    const result = $tokenMap.get(mint.toString());
+    return result ? result.name : abbreviateAddress(mint.toString());
+  };
 
   const loadOrders = () => {
     if ($adapter && $adapter.publicKey && merchantAddress) {
@@ -47,28 +54,49 @@
 
 <main>
   {#if $connected}
-    <button on:click={() => loadOrders()}> Refresh Orders </button>
+    <button class="button button-small" on:click={() => loadOrders()}> Refresh </button>
 
     {#if ordersPromise}
       {#await ordersPromise}
-        <p>loading orders</p>
-      {:catch error}
-        <p style="color: red">{error}</p>
+        <!-- <p>loading orders</p> -->
+      {:catch _error}
+        <!-- <p style="color: red">{error}</p> -->
       {/await}
     {:else}
-      <p>not loading orders</p>
+      <!-- <p>not loading orders</p> -->
     {/if}
 
-    {#if $orderAccounts}
-      {#each $orderAccounts as orderAccount}
-        <p>
-          id: {orderAccount.account.data.orderId} ||&nbsp; secret: {orderAccount.account.data
-            .secret} ||&nbsp; created: {orderAccount.account.data.created} ||&nbsp; modified: {orderAccount
-            .account.data.modified} ||&nbsp; status: {orderAccount.account.data.status} ||&nbsp; paid:
-          {orderAccount.account.data.paidAmount} ||&nbsp; expected: {orderAccount.account.data
-            .expectedAmount} ||&nbsp; data: {orderAccount.account.data.data}
-        </p>
-      {/each}
+    {#if $orderAccounts && $orderAccounts.length > 0}
+      <table>
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Created</th>
+            <th>Status</th>
+            <th>Expected</th>
+            <th>Paid</th>
+          </tr>
+        </thead>
+        <tbody>
+          {#each $orderAccounts.sort((a, b) =>
+            a.account.data.created > b.account.data.created ? 1 : -1
+          ) as orderAccount}
+            <tr>
+              <td>{orderAccount.account.data.orderId}</td>
+              <td>{new Date(orderAccount.account.data.created * 1000).toLocaleString()}</td>
+              <td>{OrderStatus[orderAccount.account.data.status]}</td>
+              <td
+                >{orderAccount.account.data.expectedAmount.toLocaleString()}
+                {getTokenSymbol(orderAccount.account.data.mint)}</td
+              >
+              <td
+                >{orderAccount.account.data.paidAmount.toLocaleString()}
+                {getTokenSymbol(orderAccount.account.data.mint)}</td
+              >
+            </tr>
+          {/each}
+        </tbody>
+      </table>
     {/if}
   {/if}
 </main>
