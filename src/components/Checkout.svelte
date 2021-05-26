@@ -56,11 +56,17 @@
 
 <main>
   {#if $connected && merchant}
-    {#if $userTokens.length > 0}
+    {#if buyerToken}
       {#if !checkoutResultTxId}
-        <button on:click={() => handleCheckoutPromise()} disabled={checkoutProcessing}>
-          {#if checkoutProcessing}Processing{:else}Pay Now{/if}
-        </button>
+        <div class="row">
+          <div class="column">
+            <input type="number" bind:value={amount} />
+            <button on:click={() => handleCheckoutPromise()} disabled={checkoutProcessing}>
+              {#if checkoutProcessing}Processing{:else}Pay {amount.toLocaleString()}
+                {buyerToken.name} Now{/if}
+            </button>
+          </div>
+        </div>
       {/if}
     {:else}
       <p>select a token sir</p>
