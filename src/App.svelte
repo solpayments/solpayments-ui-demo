@@ -17,6 +17,7 @@
   import SubscriptionDemo from './demos/Subscription.svelte';
   import ShopDemo from './demos/Shop.svelte';
   import Home from './demos/Home.svelte';
+  import Redirect from './components/helpers/Redirect.svelte';
   import './styles/normalize.css';
   import './styles/milligram.css';
   import './styles/solpayments.css';
@@ -100,14 +101,10 @@
     <div class="row">
       <div class="column">
         <div id="solpayments">
-          <!-- <Route path="/"><Home /></Route> -->
+          <Route path="/"><Home /></Route>
 
           {#if $connected}
             <Tokens showButton={false} showTokens={false} showInfo={false} />
-          {/if}
-
-          {#if $selectedToken}
-            <ShopDemo tokenAccount={$selectedToken} />
           {/if}
 
           {#if $selectedToken}
@@ -116,11 +113,14 @@
             </Route>
             <Route path="/subscriptions">
               <SubscriptionDemo
-                subscriptionName="xxxl"
+                subscriptionName="demo"
                 tokenAccount={$selectedToken}
                 packages={subscriptionPackages}
               />
             </Route>
+          {:else}
+            <Route path="/shop"><Wallet /></Route>
+            <Route path="/subscriptions"><Wallet /></Route>
           {/if}
         </div>
       </div>
