@@ -16,6 +16,8 @@
   import Orders from './components/Orders.svelte';
   import SubscriptionDemo from './demos/Subscription.svelte';
   import ShopDemo from './demos/Shop.svelte';
+  import ShopCheckout from './demos/partial/ShopCheckout.svelte';
+  import ShopOrders from './demos/partial/ShopOrders.svelte';
   import Home from './demos/Home.svelte';
   import Redirect from './components/helpers/Redirect.svelte';
   import './styles/normalize.css';
@@ -109,8 +111,12 @@
 
           {#if $selectedToken}
             <Route path="/shop">
-              <ShopDemo tokenAccount={$selectedToken} />
+              <ShopDemo />
             </Route>
+            <Route path="/shop/customer">
+              <ShopCheckout tokenAccount={$selectedToken} />
+            </Route>
+            <Route path="/shop/orders"><ShopOrders /></Route>
             <Route path="/subscriptions">
               <SubscriptionDemo
                 subscriptionName="demo"
