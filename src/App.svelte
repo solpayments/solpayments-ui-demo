@@ -18,6 +18,8 @@
   import ShopDemo from './demos/Shop.svelte';
   import ShopCheckout from './demos/partial/ShopCheckout.svelte';
   import ShopOrders from './demos/partial/ShopOrders.svelte';
+  import SubscribeDemo from './demos/partial/SubscribeDemo.svelte';
+  import SubscriptionOrders from './demos/partial/SubscriptionOrders.svelte';
   import Home from './demos/Home.svelte';
   import Redirect from './components/helpers/Redirect.svelte';
   import './styles/normalize.css';
@@ -118,11 +120,17 @@
             </Route>
             <Route path="/shop/orders"><ShopDemo><ShopOrders /></ShopDemo></Route>
             <Route path="/subscriptions">
-              <SubscriptionDemo
-                subscriptionName="demo"
-                tokenAccount={$selectedToken}
-                packages={subscriptionPackages}
-              />
+              <SubscriptionDemo subscriptionName="demo" packages={subscriptionPackages} />
+            </Route>
+            <Route path="/subscriptions/customer">
+              <SubscriptionDemo subscriptionName="demo" packages={subscriptionPackages}>
+                <SubscribeDemo tokenAccount={$selectedToken} />
+              </SubscriptionDemo>
+            </Route>
+            <Route path="/subscriptions/orders">
+              <SubscriptionDemo subscriptionName="demo" packages={subscriptionPackages}>
+                <SubscriptionOrders />
+              </SubscriptionDemo>
             </Route>
           {:else}
             <Route path="/shop/*"><Wallet /></Route>
