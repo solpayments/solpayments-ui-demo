@@ -197,25 +197,44 @@
   {/if}
 
   {#if $subscription}
-    <p style="color: green">Subscription Address: {$subscription.address}</p>
-    <p>
-      name: {$subscription.account.name} ||&nbsp; joined: {new Date(
-        $subscription.account.joined * 1000
-      )} ||&nbsp; start:
-      {new Date($subscription.account.period_start * 1000)} ||&nbsp; end: {new Date(
-        $subscription.account.period_end * 1000
-      )} ||&nbsp; data:
-      {$subscription.account.data}
-    </p>
-    {#if $clock && $subscription.account.period_end > $clock.unixTimestamp}
-      <p style="color: green">
-        Subscription Active || active until: {new Date($subscription.account.period_end * 1000)}
-      </p>
-    {:else}
-      <p style="color: red">
-        Subscription Inactive || ended: {new Date($subscription.account.period_end * 1000)}
-      </p>
-    {/if}
+    <table>
+      <tbody>
+        <tr>
+          <th> Address </th>
+          <td>
+            {$subscription.address}
+          </td>
+        </tr>
+        <tr>
+          <th> Name </th>
+          <td>
+            {$subscription.account.name}
+          </td>
+        </tr>
+        <tr>
+          <th> Date Joined </th>
+          <td>{new Date($subscription.account.joined * 1000).toLocaleString()}</td>
+        </tr>
+        <tr>
+          <th> Current Period Start </th>
+          <td>{new Date($subscription.account.period_start * 1000).toLocaleString()}</td>
+        </tr>
+        <tr>
+          {#if $clock && $subscription.account.period_end > $clock.unixTimestamp}
+            <th style="color: green"> Active Until </th>
+          {:else}
+            <th style="color: red"> Ended On </th>
+          {/if}
+          <td>
+            {new Date($subscription.account.period_end * 1000).toLocaleString()}
+            <br /><span class="tx-sm">
+              The {#if $clock && $subscription.account.period_end > $clock.unixTimestamp}current{:else}last{/if}
+              period end date
+            </span>
+          </td>
+        </tr>
+      </tbody>
+    </table>
   {:else}
     <p style="color: orange">Not subscribed to {subscriptionPackage.name}</p>
   {/if}
