@@ -114,9 +114,9 @@
               <ShopDemo />
             </Route>
             <Route path="/shop/customer">
-              <ShopCheckout tokenAccount={$selectedToken} />
+              <ShopDemo><ShopCheckout tokenAccount={$selectedToken} /></ShopDemo>
             </Route>
-            <Route path="/shop/orders"><ShopOrders /></Route>
+            <Route path="/shop/orders"><ShopDemo><ShopOrders /></ShopDemo></Route>
             <Route path="/subscriptions">
               <SubscriptionDemo
                 subscriptionName="demo"
@@ -125,8 +125,8 @@
               />
             </Route>
           {:else}
-            <Route path="/shop"><Wallet /></Route>
-            <Route path="/subscriptions"><Wallet /></Route>
+            <Route path="/shop/*"><Wallet /></Route>
+            <Route path="/subscriptions/*"><Wallet /></Route>
           {/if}
         </div>
       </div>
