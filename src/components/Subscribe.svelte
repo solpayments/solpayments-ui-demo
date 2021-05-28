@@ -8,7 +8,6 @@
     connected,
     programId as globalProgramId,
     solanaNetwork,
-    userTokens,
   } from '../stores';
   import type { Adapter, UserToken } from '../stores';
   import { subscriptionRegistry } from '../stores/subscriptions';
