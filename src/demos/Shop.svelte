@@ -39,7 +39,7 @@
       <div class="column">
         <slot>
           <div class="merchant-account">
-            <h3>Create Merchant Account Merchant</h3>
+            <h3>Merchant Account</h3>
             <p>
               Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor
               incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud
