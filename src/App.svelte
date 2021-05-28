@@ -118,7 +118,9 @@
             <Route path="/shop/customer">
               <ShopDemo><ShopCheckout tokenAccount={$selectedToken} /></ShopDemo>
             </Route>
-            <Route path="/shop/orders"><ShopDemo><ShopOrders /></ShopDemo></Route>
+            <Route path="/shop/orders"
+              ><ShopDemo><ShopOrders tokenAccount={$selectedToken} /></ShopDemo></Route
+            >
             <Route path="/subscriptions">
               <SubscriptionDemo subscriptionName="demo" packages={subscriptionPackages} />
             </Route>
@@ -129,7 +131,7 @@
             </Route>
             <Route path="/subscriptions/orders">
               <SubscriptionDemo subscriptionName="demo" packages={subscriptionPackages}>
-                <SubscriptionOrders />
+                <SubscriptionOrders tokenAccount={$selectedToken} />
               </SubscriptionDemo>
             </Route>
           {:else}
