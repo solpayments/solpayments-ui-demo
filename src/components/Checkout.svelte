@@ -8,6 +8,7 @@
     userTokens,
   } from '../stores';
   import type { UserToken } from '../stores';
+  import { transactionsMap, TxStatus } from '../stores/transaction';
   import { expressCheckout } from '../instructions/express_checkout';
   import { FINALIZED, PROGRAM_OWNER } from '../helpers/constants';
   import type { Merchant } from '../helpers/layout';
@@ -21,6 +22,12 @@
   export let buyerToken: UserToken;
   export let amount: number;
   export let merchant: Merchant;
+
+  transactionsMap.subscribe((value) => {
+    if (value && checkoutResultTxId && value.get(checkoutResultTxId)?.status != TxStatus.Unknown) {
+      checkoutPromise = null;
+    }
+  });
 
   const handleCheckoutPromise = () => {
     checkoutProcessing = true;
@@ -57,17 +64,18 @@
 <main>
   {#if $connected && merchant}
     {#if buyerToken}
-      {#if !checkoutResultTxId}
-        <div class="row">
-          <div class="column">
-            <input type="number" bind:value={amount} />
-            <button on:click={() => handleCheckoutPromise()} disabled={checkoutProcessing}>
-              {#if checkoutProcessing}Processing{:else}Pay {amount.toLocaleString()}
-                {buyerToken.name} Now{/if}
-            </button>
-          </div>
+      <div class="row">
+        <div class="column">
+          <input type="number" bind:value={amount} />
+          <button
+            on:click={() => handleCheckoutPromise()}
+            disabled={checkoutProcessing || checkoutPromise != null}
+          >
+            {#if checkoutProcessing || checkoutPromise != null}Processing{:else}Pay {amount.toLocaleString()}
+              {buyerToken.name} Now{/if}
+          </button>
         </div>
-      {/if}
+      </div>
     {:else}
       <p>select a token sir</p>
     {/if}
