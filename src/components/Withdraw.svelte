@@ -1,5 +1,6 @@
 <script lang="ts">
   import { Connection } from '@solana/web3.js';
+  import { transactionsMap, TxStatus } from '../stores/transaction';
   import { adapter, connected, programId as globalProgramId, solanaNetwork } from '../stores';
   import type { UserToken } from '../stores';
   import { withdraw } from '../instructions/withdraw';
@@ -12,6 +13,12 @@
   let withdrawResultTxId: string | undefined = undefined;
   export let merchantToken: UserToken;
   export let orderInfo: OrderInfo;
+
+  transactionsMap.subscribe((value) => {
+    if (value && withdrawResultTxId && value.get(withdrawResultTxId)?.status != TxStatus.Unknown) {
+      withdrawPromise = null;
+    }
+  });
 
   const handleWithdrawPromise = () => {
     withdrawProcessing = true;
