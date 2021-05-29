@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { SvelteToast } from '@zerodevx/svelte-toast';
   import { derived } from 'svelte/store';
   import { onMount } from 'svelte';
   import { links, Route, Router } from 'svelte-routing';
@@ -40,11 +41,14 @@
     ],
   };
 
+  const toastOptions = { reversed: true, intro: { y: 192 } };
+
   solanaNetwork.update(() => 'http://localhost:8899');
   onMount(async () => getTokenRegistry());
 </script>
 
 <Router {url}>
+  <SvelteToast options={toastOptions} />
   <header class="header">
     <div class="container">
       <div class="row">
@@ -105,3 +109,12 @@
     </div>
   </div>
 </Router>
+
+<style>
+  :root {
+    --toastContainerTop: auto;
+    --toastContainerRight: auto;
+    --toastContainerBottom: 8rem;
+    --toastContainerLeft: calc(50vw - 8rem);
+  }
+</style>
