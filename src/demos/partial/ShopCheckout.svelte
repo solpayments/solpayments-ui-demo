@@ -7,8 +7,10 @@
   import ExpressCheckout from '../../components/Checkout.svelte';
   import Redirect from '../../components/helpers/Redirect.svelte';
   import { shopAddressStore as addressStore } from '../demo';
+  import type { PublicKey } from '@solana/web3.js';
 
-  export let tokenAccount: UserToken;
+  export let tokenAccount: UserToken | undefined = undefined;
+  export let mint: PublicKey;
   export let amount = 10;
   export let secret = 'hunter2';
 
@@ -24,8 +26,15 @@
 
 <main class="shop-checkout">
   {#if $connected}
-    {#if tokenAccount && $merchant}
-      <ExpressCheckout merchant={$merchant} {orderId} {secret} {amount} buyerToken={tokenAccount} />
+    {#if mint && $merchant}
+      <ExpressCheckout
+        merchant={$merchant}
+        {orderId}
+        {secret}
+        {mint}
+        {amount}
+        buyerToken={tokenAccount}
+      />
     {:else}
       <Redirect to="/shop" state={{ from: location }} />
     {/if}
