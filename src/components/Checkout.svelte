@@ -2,18 +2,12 @@
   import { onDestroy } from 'svelte';
   import { derived } from 'svelte/store';
   import { Connection, PublicKey } from '@solana/web3.js';
-  import {
-    adapter,
-    connected,
-    programId as globalProgramId,
-    solanaNetwork,
-    userTokens,
-  } from '../stores';
+  import { adapter, connected, programId as globalProgramId, solanaNetwork } from '../stores';
   import type { UserToken } from '../stores';
   import { tokenMap } from '../stores/tokenRegistry';
   import { transactionsMap, TxStatus } from '../stores/transaction';
   import { expressCheckout } from '../instructions/express_checkout';
-  import { FINALIZED, PROGRAM_OWNER } from '../helpers/constants';
+  import { DEFAULT_DECIMALS, FINALIZED, PROGRAM_OWNER } from '../helpers/constants';
   import type { Merchant } from '../helpers/layout';
   import TrasactionResult from './TrasactionResult.svelte';
 
@@ -26,7 +20,6 @@
   export let amount: number = 0;
   export let merchant: Merchant;
   export let mint: PublicKey;
-  const DEFAULT_DECIMALS = 6;
 
   const token = derived(tokenMap, ($tokenMap) => {
     if ($tokenMap) {
@@ -96,7 +89,7 @@
         <input type="number" min="0" bind:value={amount} />
         <button
           on:click={() => handleCheckoutPromise()}
-          disabled={checkoutProcessing || checkoutPromise != null  || !$token}
+          disabled={checkoutProcessing || checkoutPromise != null || !$token}
         >
           {#if checkoutProcessing || checkoutPromise != null}Processing{:else}Pay {displayAmount.toLocaleString()}
             {tokenSymbol} Now{/if}

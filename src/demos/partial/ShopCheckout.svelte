@@ -1,4 +1,5 @@
 <script lang="ts">
+  import type { PublicKey } from '@solana/web3.js';
   import { derived } from 'svelte/store';
   import { connected } from '../../stores';
   import type { UserToken } from '../../stores';
@@ -7,7 +8,6 @@
   import ExpressCheckout from '../../components/Checkout.svelte';
   import Redirect from '../../components/helpers/Redirect.svelte';
   import { shopAddressStore as addressStore } from '../demo';
-  import type { PublicKey } from '@solana/web3.js';
 
   export let tokenAccount: UserToken | undefined = undefined;
   export let mint: PublicKey;
