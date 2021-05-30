@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { onDestroy } from 'svelte';
   import { Connection, PublicKey } from '@solana/web3.js';
   import {
     adapter,
@@ -23,7 +24,8 @@
   export let amount: number;
   export let merchant: Merchant;
 
-  transactionsMap.subscribe((value) => {
+  // used to ensure this store subscription does not cause mem leak
+  const unsubscribe = transactionsMap.subscribe((value) => {
     if (value && checkoutResultTxId && value.get(checkoutResultTxId)?.status != TxStatus.Unknown) {
       checkoutPromise = null;
     }
@@ -59,6 +61,8 @@
             })
         : null;
   };
+
+  onDestroy(unsubscribe);
 </script>
 
 <main>

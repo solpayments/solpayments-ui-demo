@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { onDestroy } from 'svelte';
   import { derived } from 'svelte/store';
   import type { Writable } from 'svelte/store';
   import { Connection, PublicKey } from '@solana/web3.js';
@@ -20,7 +21,8 @@
   let registrationResultTxId: string | undefined = undefined;
   let registrationPromise: Promise<void | string> | null = null;
 
-  transactionsMap.subscribe((value) => {
+  // used to ensure this store subscription does not cause mem leak
+  const unsubscribe = transactionsMap.subscribe((value) => {
     if (
       value &&
       registrationResultTxId &&
@@ -105,6 +107,8 @@
           })
       : null;
   };
+
+  onDestroy(unsubscribe);
 </script>
 
 <main>

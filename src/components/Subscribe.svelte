@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { onMount } from 'svelte';
+  import { onMount, onDestroy } from 'svelte';
   import { derived } from 'svelte/store';
   import { Connection, PublicKey } from '@solana/web3.js';
   import {
@@ -32,7 +32,8 @@
   let subscriptionResultTxId: string | undefined = undefined;
   let subscriptionAddress: PublicKey | undefined = undefined;
 
-  transactionsMap.subscribe((value) => {
+  // used to ensure this store subscription does not cause mem leak
+  const unsubscribe = transactionsMap.subscribe((value) => {
     if (
       value &&
       subscriptionResultTxId &&
@@ -171,6 +172,8 @@
     continuousClockReload();
     getSubscriptionOrBust();
   });
+
+  onDestroy(unsubscribe);
 </script>
 
 <main>
