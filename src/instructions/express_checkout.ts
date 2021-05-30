@@ -15,7 +15,7 @@ import {
 import { InstructionType } from '../helpers/instruction';
 import { makeExpressCheckoutTransaction } from './utils';
 import { WRAPPED_SOL_MINT } from '../helpers/solana';
-import { getOrCreateSOLTokenAccount } from '../helpers/token';
+import { getOrCreateTokenAccount, getOrCreateSOLTokenAccount } from '../helpers/token';
 
 interface ExpressCheckoutParams {
   amount: number;
@@ -59,18 +59,27 @@ export const expressCheckout = async (
   let afterIxs: TransactionInstruction[] = [];
   let signers: Account[] = [];
 
-  if (mint.toBase58() === WRAPPED_SOL_MINT.toBase58() || tokenAccount === undefined) {
-    const wrappedSolResult = await getOrCreateSOLTokenAccount({
-      amount,
-      connection,
-      wallet,
-    });
+  if (!tokenAccount) {
+    let getAccResult;
+    if (mint.toBase58() === WRAPPED_SOL_MINT.toBase58()) {
+      getAccResult = await getOrCreateSOLTokenAccount({
+        amount,
+        connection,
+        wallet,
+      });
+    } else {
+      getAccResult = await getOrCreateTokenAccount({
+        connection,
+        mint,
+        wallet,
+      });
+    }
 
-    if (wrappedSolResult.value) {
-      tokenAccount = wrappedSolResult.value.address;
-      beforeIxs = wrappedSolResult.value.instructions;
-      afterIxs = wrappedSolResult.value.cleanupInstructions;
-      signers = wrappedSolResult.value.signers;
+    if (getAccResult.value) {
+      tokenAccount = getAccResult.value.address;
+      beforeIxs = getAccResult.value.instructions;
+      afterIxs = getAccResult.value.cleanupInstructions;
+      signers = getAccResult.value.signers;
     }
   }
 
