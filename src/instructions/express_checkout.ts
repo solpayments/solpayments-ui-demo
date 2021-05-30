@@ -59,7 +59,7 @@ export const expressCheckout = async (
   let afterIxs: TransactionInstruction[] = [];
   let signers: Account[] = [];
 
-  if (mint === WRAPPED_SOL_MINT || tokenAccount === undefined) {
+  if (mint.toBase58() === WRAPPED_SOL_MINT.toBase58() || tokenAccount === undefined) {
     const wrappedSolResult = await getOrCreateSOLTokenAccount({
       amount,
       connection,
