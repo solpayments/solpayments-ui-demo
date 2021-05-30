@@ -31,6 +31,7 @@
             connection: new Connection($solanaNetwork, FINALIZED),
             merchantAccount: orderInfo.account.data.merchant,
             merchantTokenAccount: merchantToken.pubkey,
+            mint: orderInfo.account.data.mint,
             orderAccount: orderInfo.pubkey,
             orderTokenAccount: orderInfo.account.data.token,
             thisProgramId: $globalProgramId,
