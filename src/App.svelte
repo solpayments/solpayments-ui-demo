@@ -87,19 +87,19 @@
               <ShopDemo><ShopCheckout mint={mintKey} tokenAccount={$selectedToken} /></ShopDemo>
             </Route>
             <Route path="/shop/orders"><ShopDemo><ShopOrders /></ShopDemo></Route>
-            <!-- <Route path="/subscriptions">
+            <Route path="/subscriptions">
               <SubscriptionDemo {subscriptionName} packages={subscriptionPackages} />
             </Route>
             <Route path="/subscriptions/customer">
               <SubscriptionDemo {subscriptionName} packages={subscriptionPackages}>
-                <SubscribeDemo tokenAccount={$selectedToken} />
+                <SubscribeDemo mint={mintKey} tokenAccount={$selectedToken} />
               </SubscriptionDemo>
             </Route>
             <Route path="/subscriptions/orders">
               <SubscriptionDemo {subscriptionName} packages={subscriptionPackages}>
-                <SubscriptionOrders tokenAccount={$selectedToken} />
+                <SubscriptionOrders />
               </SubscriptionDemo>
-            </Route> -->
+            </Route>
           {:else}
             <Route path="/shop/*"><Wallet /></Route>
             <Route path="/subscriptions/*"><Wallet /></Route>

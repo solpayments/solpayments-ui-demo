@@ -1,4 +1,4 @@
-import type { Connection, TransactionSignature } from '@solana/web3.js';
+import type { Account, Connection, TransactionSignature } from '@solana/web3.js';
 import {
   PublicKey,
   Transaction,
@@ -15,10 +15,12 @@ import {
 import { Instruction, InstructionData, InstructionType } from '../helpers/instruction';
 import type { OrderSubscription } from '../helpers/data';
 import { makeExpressCheckoutTransaction } from './utils';
+import { WRAPPED_SOL_MINT } from '../helpers/solana';
+import { getOrCreateTokenAccount, getOrCreateSOLTokenAccount } from '../helpers/token';
 
 interface RenewSubscribeParams {
   amount: number;
-  buyerTokenAccount: PublicKey /** the token account used to pay for this order */;
+  buyerTokenAccount?: PublicKey /** the token account used to pay for this order */;
   connection: Connection;
   merchantAccount: PublicKey;
   mint: PublicKey /** the mint in use; represents the currency */;
@@ -60,52 +62,93 @@ export const renew_subscription = async (
 
   // create and pay for order
   const transaction = new Transaction({ feePayer: wallet.publicKey });
-  try {
-    transaction.add(
-      await makeExpressCheckoutTransaction({
+  let tokenAccount: PublicKey | undefined = buyerTokenAccount;
+  let beforeIxs: TransactionInstruction[] = [];
+  let afterIxs: TransactionInstruction[] = [];
+  let signers: Account[] = [];
+
+  if (!tokenAccount) {
+    let getAccResult;
+    if (mint.toBase58() === WRAPPED_SOL_MINT.toBase58()) {
+      getAccResult = await getOrCreateSOLTokenAccount({
         amount,
-        buyerTokenAccount,
-        data: JSON.stringify(orderData),
-        merchantAccount,
+        connection,
+        wallet,
+      });
+    } else {
+      getAccResult = await getOrCreateTokenAccount({
+        connection,
         mint,
-        orderId,
-        programId: programIdKey,
-        programOwnerAccount,
-        secret: '',
-        sponsorAccount,
-        signer: wallet.publicKey,
-      })
-    );
-  } catch (error) {
-    return failure(error);
-  }
-  // renew subscription
-  try {
-    transaction.add(
-      new TransactionInstruction({
-        programId: programIdKey,
-        keys: [
-          { pubkey: wallet.publicKey, isSigner: true, isWritable: true },
-          { pubkey: subscriptionAccount, isSigner: false, isWritable: true },
-          { pubkey: merchantAccount, isSigner: false, isWritable: false },
-          { pubkey: orderKey, isSigner: false, isWritable: false },
-          { pubkey: SYSVAR_CLOCK_PUBKEY, isSigner: false, isWritable: false },
-        ],
-        data: new Instruction({
-          instruction: InstructionType.RenewSubscription,
-          [InstructionType.RenewSubscription]: new Uint8Array(
-            new InstructionData(InstructionType.RenewSubscription, {
-              quantity,
-            }).encode()
-          ),
-        }).encode(),
-      })
-    );
-  } catch (error) {
-    return failure(error);
+        wallet,
+      });
+    }
+
+    if (getAccResult.value) {
+      tokenAccount = getAccResult.value.address;
+      beforeIxs = getAccResult.value.instructions;
+      afterIxs = getAccResult.value.cleanupInstructions;
+      signers = getAccResult.value.signers;
+    }
   }
 
-  const result = await signAndSendTransaction(connection, transaction, wallet, []);
+  // add the instructions to run before main instruction
+  beforeIxs.forEach((element) => {
+    transaction.add(element);
+  });
+
+  if (tokenAccount) {
+    try {
+      transaction.add(
+        await makeExpressCheckoutTransaction({
+          amount,
+          buyerTokenAccount: tokenAccount,
+          data: JSON.stringify(orderData),
+          merchantAccount,
+          mint,
+          orderId,
+          programId: programIdKey,
+          programOwnerAccount,
+          secret: '',
+          sponsorAccount,
+          signer: wallet.publicKey,
+        })
+      );
+    } catch (error) {
+      return failure(error);
+    }
+    // renew subscription
+    try {
+      transaction.add(
+        new TransactionInstruction({
+          programId: programIdKey,
+          keys: [
+            { pubkey: wallet.publicKey, isSigner: true, isWritable: true },
+            { pubkey: subscriptionAccount, isSigner: false, isWritable: true },
+            { pubkey: merchantAccount, isSigner: false, isWritable: false },
+            { pubkey: orderKey, isSigner: false, isWritable: false },
+            { pubkey: SYSVAR_CLOCK_PUBKEY, isSigner: false, isWritable: false },
+          ],
+          data: new Instruction({
+            instruction: InstructionType.RenewSubscription,
+            [InstructionType.RenewSubscription]: new Uint8Array(
+              new InstructionData(InstructionType.RenewSubscription, {
+                quantity,
+              }).encode()
+            ),
+          }).encode(),
+        })
+      );
+    } catch (error) {
+      return failure(error);
+    }
+  }
+
+  // add the instructions to run after main instruction
+  afterIxs.forEach((element) => {
+    transaction.add(element);
+  });
+
+  const result = await signAndSendTransaction(connection, transaction, wallet, signers);
 
   if (result.value) {
     awaitTransactionSignatureConfirmation(

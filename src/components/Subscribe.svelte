@@ -11,10 +11,11 @@
   } from '../stores';
   import { transactionsMap, TxStatus } from '../stores/transaction';
   import type { Adapter, UserToken } from '../stores';
+  import { tokenMap } from '../stores/tokenRegistry';
   import { subscriptionRegistry } from '../stores/subscriptions';
   import { renew_subscription } from '../instructions/renew';
   import { subscribe } from '../instructions/subscribe';
-  import { FINALIZED, PROCESSED, PROGRAM_OWNER } from '../helpers/constants';
+  import { DEFAULT_DECIMALS, FINALIZED, PROCESSED, PROGRAM_OWNER } from '../helpers/constants';
   import { getClockAccount, getSubscriptionByAddress } from '../helpers/api';
   import type { Package } from '../helpers/data';
   import type { Merchant } from '../helpers/layout';
@@ -22,15 +23,39 @@
 
   export let subscriptionTimeout = 1000 * 10;
   export let clockTimeout = 1000 * 60;
-  export let buyerToken: UserToken;
+  export let buyerToken: UserToken | undefined = undefined;
   export let merchant: Merchant;
   export let subscriptionName: string;
   export let subscriptionPackage: Package;
+  export let mint: PublicKey;
+
   const name = `${subscriptionName}:${subscriptionPackage.name}`;
   let subscriptionPromise: Promise<void | string> | null = null;
   let subscriptionProcessing = false;
   let subscriptionResultTxId: string | undefined = undefined;
   let subscriptionAddress: PublicKey | undefined = undefined;
+
+  const token = derived(tokenMap, ($tokenMap) => {
+    if ($tokenMap) {
+      if (mint !== undefined) {
+        return $tokenMap.get(mint.toBase58()) || null;
+      } else if (buyerToken) {
+        return $tokenMap.get(buyerToken.pubkey.toBase58()) || null;
+      }
+    }
+    return null;
+  });
+
+  $: tokenSymbol = buyerToken ? buyerToken.symbol : $token ? $token.symbol : '';
+
+  const getUiPrice = (price: number) => {
+    if (buyerToken) {
+      return price / 10 ** buyerToken.account.data.parsed.info.tokenAmount.decimals;
+    } else if ($token) {
+      return price / 10 ** $token.decimals;
+    }
+    return price / 10 ** DEFAULT_DECIMALS;
+  };
 
   // used to ensure this store subscription does not cause mem leak
   const unsubscribe = transactionsMap.subscribe((value) => {
@@ -96,13 +121,13 @@
     subscriptionProcessing = true;
     subscriptionPromise = null;
     subscriptionPromise =
-      $adapter && $adapter.publicKey && merchant && buyerToken
+      $adapter && $adapter.publicKey && merchant
         ? subscribe({
             amount: subscriptionPackage.price,
-            buyerTokenAccount: buyerToken.pubkey,
+            buyerTokenAccount: buyerToken?.pubkey,
             connection: new Connection($solanaNetwork, FINALIZED),
             merchantAccount: merchant.address,
-            mint: new PublicKey(buyerToken.account.data.parsed.info.mint),
+            mint,
             name,
             programOwnerAccount: new PublicKey(PROGRAM_OWNER),
             sponsorAccount: merchant.account.sponsor,
@@ -127,13 +152,13 @@
     subscriptionProcessing = true;
     subscriptionPromise = null;
     subscriptionPromise =
-      $adapter && $adapter.publicKey && merchant && subscriptionAddress && buyerToken
+      $adapter && $adapter.publicKey && merchant && subscriptionAddress
         ? renew_subscription({
             amount: subscriptionPackage.price,
-            buyerTokenAccount: buyerToken.pubkey,
+            buyerTokenAccount: buyerToken?.pubkey,
             connection: new Connection($solanaNetwork, FINALIZED),
             merchantAccount: merchant.address,
-            mint: new PublicKey(buyerToken.account.data.parsed.info.mint),
+            mint,
             name,
             programOwnerAccount: new PublicKey(PROGRAM_OWNER),
             sponsorAccount: merchant.account.sponsor,
@@ -177,7 +202,7 @@
 </script>
 
 <main>
-  {#if $connected && merchant && buyerToken}
+  {#if $connected && merchant}
     <!-- TODO show ui friendly amount -->
     {#if $subscription}
       <button
@@ -185,8 +210,10 @@
         disabled={subscriptionProcessing || subscriptionPromise != null}
       >
         {#if subscriptionProcessing || subscriptionPromise != null}Processing{:else}
-          Renew {subscriptionPackage.name} for {subscriptionPackage.price}
-          {buyerToken.name}
+          Renew {subscriptionPackage.name} for {getUiPrice(
+            subscriptionPackage.price
+          ).toLocaleString()}
+          {tokenSymbol}
         {/if}
       </button>
     {:else}
@@ -195,8 +222,10 @@
         disabled={subscriptionProcessing || subscriptionPromise != null}
       >
         {#if subscriptionProcessing || subscriptionPromise != null}Processing{:else}
-          Subscribe to {subscriptionPackage.name} for {subscriptionPackage.price}
-          {buyerToken.name}
+          Subscribe to {subscriptionPackage.name} for {getUiPrice(
+            subscriptionPackage.price
+          ).toLocaleString()}
+          {tokenSymbol}
         {/if}
       </button>
     {/if}
