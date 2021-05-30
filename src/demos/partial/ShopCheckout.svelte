@@ -18,18 +18,14 @@
     }
     return null;
   });
+
+  $: orderId = `order-${new Date().valueOf()}`;
 </script>
 
 <main class="shop-checkout">
   {#if $connected}
     {#if tokenAccount && $merchant}
-      <ExpressCheckout
-        merchant={$merchant}
-        orderId={`order-${new Date().valueOf()}`}
-        {secret}
-        {amount}
-        buyerToken={tokenAccount}
-      />
+      <ExpressCheckout merchant={$merchant} {orderId} {secret} {amount} buyerToken={tokenAccount} />
     {:else}
       <Redirect to="/shop" state={{ from: location }} />
     {/if}
