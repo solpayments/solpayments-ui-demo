@@ -9,6 +9,7 @@
     programId as globalProgramId,
     solanaNetwork,
   } from '../stores';
+  import { transactionsMap, TxStatus } from '../stores/transaction';
   import type { Adapter, UserToken } from '../stores';
   import { subscriptionRegistry } from '../stores/subscriptions';
   import { renew_subscription } from '../instructions/renew';
@@ -30,6 +31,16 @@
   let subscriptionProcessing = false;
   let subscriptionResultTxId: string | undefined = undefined;
   let subscriptionAddress: PublicKey | undefined = undefined;
+
+  transactionsMap.subscribe((value) => {
+    if (
+      value &&
+      subscriptionResultTxId &&
+      value.get(subscriptionResultTxId)?.status != TxStatus.Unknown
+    ) {
+      subscriptionPromise = null;
+    }
+  });
 
   const fetchSubscription = (connectedWallet: Adapter) => {
     if (connectedWallet && connectedWallet.publicKey) {
@@ -164,25 +175,29 @@
 
 <main>
   {#if $connected && merchant && buyerToken}
-    {#if !subscriptionResultTxId}
-      <!-- TODO show ui friendly amount -->
-      {#if $subscription}
-        <button on:click={() => handleRenewSubscriptionPromise()} disabled={subscriptionProcessing}>
-          {#if subscriptionProcessing}Processing{:else}
-            Renew {subscriptionPackage.name} for {subscriptionPackage.price}
-            {buyerToken.name}
-          {/if}
-        </button>
-      {:else}
-        <button on:click={() => handleSubscriptionPromise()} disabled={subscriptionProcessing}>
-          {#if subscriptionProcessing}Processing{:else}
-            Subscribe to {subscriptionPackage.name} for {subscriptionPackage.price}
-            {buyerToken.name}
-          {/if}
-        </button>
-      {/if}
-      <p>Duration {subscriptionPackage.duration} seconds</p>
+    <!-- TODO show ui friendly amount -->
+    {#if $subscription}
+      <button
+        on:click={() => handleRenewSubscriptionPromise()}
+        disabled={subscriptionProcessing || subscriptionPromise != null}
+      >
+        {#if subscriptionProcessing || subscriptionPromise != null}Processing{:else}
+          Renew {subscriptionPackage.name} for {subscriptionPackage.price}
+          {buyerToken.name}
+        {/if}
+      </button>
+    {:else}
+      <button
+        on:click={() => handleSubscriptionPromise()}
+        disabled={subscriptionProcessing || subscriptionPromise != null}
+      >
+        {#if subscriptionProcessing || subscriptionPromise != null}Processing{:else}
+          Subscribe to {subscriptionPackage.name} for {subscriptionPackage.price}
+          {buyerToken.name}
+        {/if}
+      </button>
     {/if}
+    <p>Duration {subscriptionPackage.duration} seconds</p>
 
     {#if subscriptionPromise}
       {#await subscriptionPromise}
