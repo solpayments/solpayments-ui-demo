@@ -5,3 +5,6 @@ export const abbreviateAddress = (address: string): string => {
 export const getUiAmount = (amount: number, decimals: number): number => {
   return amount / 10 ** decimals;
 };
+
+export const sleep = (t: number): Promise<unknown> =>
+  new Promise((resolve) => setTimeout(resolve, t));
