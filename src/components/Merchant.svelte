@@ -2,6 +2,7 @@
   import { derived } from 'svelte/store';
   import type { Writable } from 'svelte/store';
   import { Connection, PublicKey } from '@solana/web3.js';
+  import { transactionsMap, TxStatus } from '../stores/transaction';
   import { adapter, connected, programId as globalProgramId, solanaNetwork } from '../stores';
   import { merchantRegistry } from '../stores/merchants';
   import { getMerchantByAddress } from '../helpers/api';
@@ -17,6 +18,17 @@
   export let addressStore: Writable<PublicKey | undefined>;
   let registrationProcessing = false;
   let registrationResultTxId: string | undefined = undefined;
+  let registrationPromise: Promise<void | string> | null = null;
+
+  transactionsMap.subscribe((value) => {
+    if (
+      value &&
+      registrationResultTxId &&
+      value.get(registrationResultTxId)?.status != TxStatus.Unknown
+    ) {
+      registrationPromise = null;
+    }
+  });
 
   const fetchMerchant = (connectedWallet: Adapter) => {
     if (connectedWallet && connectedWallet.publicKey) {
@@ -71,7 +83,6 @@
     return null;
   });
 
-  let registrationPromise: Promise<void | string> | null = null;
   const handleRegistrationPromise = () => {
     registrationProcessing = true;
     registrationPromise = $adapter
@@ -111,9 +122,13 @@
       <p>
         fee: {$merchant.account.fee} ||&nbsp; data: {$merchant.account.data}
       </p>
-    {:else if !registrationResultTxId}
-      <button on:click={() => handleRegistrationPromise()} disabled={registrationProcessing}>
-        {#if registrationProcessing}Registering Merchant{:else}Register Merchant{/if}
+    {:else}
+      <button
+        on:click={() => handleRegistrationPromise()}
+        disabled={registrationPromise != null || registrationProcessing}
+      >
+        {#if registrationPromise != null || registrationProcessing}Registering Merchant{:else}Register
+          Merchant{/if}
       </button>
     {/if}
   {/if}
