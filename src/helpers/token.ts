@@ -1,20 +1,15 @@
 import type { Connection, AccountInfo } from '@solana/web3.js';
-import {
-  PublicKey,
-  SystemProgram,
-  TransactionInstruction,
-  SYSVAR_RENT_PUBKEY,
-} from '@solana/web3.js';
-import { Token } from '@solana/spl-token';
+import { Account, PublicKey, SystemProgram, TransactionInstruction } from '@solana/web3.js';
+import { AccountLayout, Token } from '@solana/spl-token';
 import { CONFIRMED } from './constants';
-import { ASSOCIATED_TOKEN_ACCOUNT_PROGRAM_ID, TOKEN_PROGRAM_ID, WRAPPED_SOL_MINT } from './solana';
+import { TOKEN_PROGRAM_ID, WRAPPED_SOL_MINT } from './solana';
 import type { Result } from './result';
 import { failure, success } from './result';
 import type { WalletAdapter } from './types';
 
 interface GetOrCreateTokenAccountParams {
+  amount: number;
   connection: Connection;
-  mint: PublicKey;
   wallet: WalletAdapter;
 }
 
@@ -22,58 +17,16 @@ interface GetOrCreateTokenAccountResult {
   address: PublicKey;
   instructions: TransactionInstruction[];
   cleanupInstructions: TransactionInstruction[];
+  signers: Account[];
 }
 
 /**
- * Derives the associated token address for the given wallet address and token mint.
- * @param owner Wallet address
- * @param mint Mint address
+ * Get or create the associated token account for the native mint
  */
-export async function getAssociatedTokenAddress(
-  owner: PublicKey,
-  mint: PublicKey
-): Promise<PublicKey> {
-  const [address] = await PublicKey.findProgramAddress(
-    [owner.toBuffer(), TOKEN_PROGRAM_ID.toBuffer(), mint.toBuffer()],
-    ASSOCIATED_TOKEN_ACCOUNT_PROGRAM_ID
-  );
-  return address;
-}
-
-/**
- * Instruction to create the associated token address for the given wallet address and token mint.
- *
- * @param payer Account to use to pay for fees
- * @param owner Wallet address for the new associated token address
- * @param mint Mint address for the new associated token address
- */
-export async function createAssociatedTokenAccount(
-  payer: PublicKey,
-  owner: PublicKey,
-  mint: PublicKey
-): Promise<TransactionInstruction> {
-  const associatedTokenAddress = await getAssociatedTokenAddress(owner, mint);
-  return new TransactionInstruction({
-    keys: [
-      { pubkey: payer, isSigner: true, isWritable: true },
-      { pubkey: associatedTokenAddress, isSigner: false, isWritable: true },
-      { pubkey: owner, isSigner: false, isWritable: false },
-      { pubkey: mint, isSigner: false, isWritable: false },
-      { pubkey: SystemProgram.programId, isSigner: false, isWritable: false },
-      { pubkey: TOKEN_PROGRAM_ID, isSigner: false, isWritable: false },
-      { pubkey: SYSVAR_RENT_PUBKEY, isSigner: false, isWritable: false },
-    ],
-    programId: ASSOCIATED_TOKEN_ACCOUNT_PROGRAM_ID,
-  });
-}
-
-/**
- * Get or create the associated token account for a given mint
- */
-export const getOrCreateTokenAccount = async (
+export const getOrCreateSOLTokenAccount = async (
   params: GetOrCreateTokenAccountParams
 ): Promise<Result<GetOrCreateTokenAccountResult>> => {
-  const { connection, mint, wallet } = params;
+  const { amount, connection, wallet } = params;
 
   if (!wallet.publicKey) {
     return failure(new Error('Wallet not connected'));
@@ -81,33 +34,61 @@ export const getOrCreateTokenAccount = async (
 
   const instructions: TransactionInstruction[] = [];
   const cleanupInstructions: TransactionInstruction[] = [];
-  const address = await getAssociatedTokenAddress(wallet.publicKey, mint);
   let possibleTokenAccount: AccountInfo<Buffer> | null = null;
+  const newAccount = new Account();
+
+  const closeAccountIx = Token.createCloseAccountInstruction(
+    TOKEN_PROGRAM_ID,
+    newAccount.publicKey,
+    wallet.publicKey,
+    wallet.publicKey,
+    []
+  );
 
   try {
-    possibleTokenAccount = await connection.getAccountInfo(address, CONFIRMED);
+    possibleTokenAccount = await connection.getAccountInfo(newAccount.publicKey, CONFIRMED);
   } catch (error) {
     return failure(error);
   }
 
   if (!possibleTokenAccount) {
-    instructions.push(await createAssociatedTokenAccount(wallet.publicKey, wallet.publicKey, mint));
-  }
-  if (mint === WRAPPED_SOL_MINT) {
-    cleanupInstructions.push(
-      Token.createCloseAccountInstruction(
+    // create the account
+    instructions.push(
+      SystemProgram.createAccount({
+        fromPubkey: wallet.publicKey,
+        newAccountPubkey: newAccount.publicKey,
+        lamports: await Token.getMinBalanceRentForExemptAccount(connection),
+        space: AccountLayout.span,
+        programId: TOKEN_PROGRAM_ID,
+      })
+    );
+    // Send lamports to it (these will be wrapped into native tokens by the token program)
+    instructions.push(
+      SystemProgram.transfer({
+        fromPubkey: wallet.publicKey,
+        toPubkey: newAccount.publicKey,
+        lamports: amount,
+      })
+    );
+    // Assign the new account to the native token mint.
+    // the account will be initialized with a balance equal to the native token balance.
+    // (i.e. amount)
+    instructions.push(
+      Token.createInitAccountInstruction(
         TOKEN_PROGRAM_ID,
-        address,
-        wallet.publicKey,
-        wallet.publicKey,
-        []
+        WRAPPED_SOL_MINT,
+        newAccount.publicKey,
+        wallet.publicKey
       )
     );
   }
+  // consensus is to destroy the native mint account after all instructions
+  cleanupInstructions.push(closeAccountIx);
 
   return success({
-    address,
+    address: newAccount.publicKey,
     instructions,
     cleanupInstructions,
+    signers: [newAccount],
   });
 };
