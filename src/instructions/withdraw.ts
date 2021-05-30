@@ -9,7 +9,7 @@ import {
 } from '@solana/web3.js';
 import { PDA_SEED } from '../helpers/constants';
 import { TOKEN_PROGRAM_ID, WRAPPED_SOL_MINT } from '../helpers/solana';
-import { getOrCreateSOLTokenAccount } from '../helpers/token';
+import { getOrCreateTokenAccount, getOrCreateSOLTokenAccount } from '../helpers/token';
 import type { Result } from '../helpers/result';
 import { failure } from '../helpers/result';
 import type { WalletAdapter } from '../helpers/types';
@@ -54,18 +54,27 @@ export const withdraw = async (params: WithdrawParams): Promise<Result<Transacti
   let afterIxs: TransactionInstruction[] = [];
   let signers: Account[] = [];
 
-  if (mint === WRAPPED_SOL_MINT) {
-    const wrappedSolResult = await getOrCreateSOLTokenAccount({
-      amount: 0,
-      connection,
-      wallet,
-    });
+  if (!tokenAccount) {
+    let getAccResult;
+    if (mint.toBase58() === WRAPPED_SOL_MINT.toBase58()) {
+      getAccResult = await getOrCreateSOLTokenAccount({
+        amount: 0,
+        connection,
+        wallet,
+      });
+    } else {
+      getAccResult = await getOrCreateTokenAccount({
+        connection,
+        mint,
+        wallet,
+      });
+    }
 
-    if (wrappedSolResult.value) {
-      tokenAccount = wrappedSolResult.value.address;
-      beforeIxs = wrappedSolResult.value.instructions;
-      afterIxs = wrappedSolResult.value.cleanupInstructions;
-      signers = wrappedSolResult.value.signers;
+    if (getAccResult.value) {
+      tokenAccount = getAccResult.value.address;
+      beforeIxs = getAccResult.value.instructions;
+      afterIxs = getAccResult.value.cleanupInstructions;
+      signers = getAccResult.value.signers;
     }
   }
 
