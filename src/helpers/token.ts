@@ -7,7 +7,7 @@ import type { Result } from './result';
 import { failure, success } from './result';
 import type { WalletAdapter } from './types';
 
-interface GetOrCreateTokenAccountParams {
+interface GetOrCreateSOLTokenAccountParams {
   amount: number;
   connection: Connection;
   wallet: WalletAdapter;
@@ -24,7 +24,7 @@ interface GetOrCreateTokenAccountResult {
  * Get or create the associated token account for the native mint
  */
 export const getOrCreateSOLTokenAccount = async (
-  params: GetOrCreateTokenAccountParams
+  params: GetOrCreateSOLTokenAccountParams
 ): Promise<Result<GetOrCreateTokenAccountResult>> => {
   const { amount, connection, wallet } = params;
 
@@ -109,3 +109,56 @@ export async function getAssociatedTokenAddress(
   );
   return address;
 }
+
+interface GetOrCreateTokenAccountParams {
+  connection: Connection;
+  mint: PublicKey;
+  wallet: WalletAdapter;
+}
+
+/**
+ * Get or create an associated token account for a given mint
+ * NOTE: does not work for the native SOL mint
+ */
+export const getOrCreateTokenAccount = async (
+  params: GetOrCreateTokenAccountParams
+): Promise<Result<GetOrCreateTokenAccountResult>> => {
+  const { connection, mint, wallet } = params;
+
+  if (mint.toBase58() === WRAPPED_SOL_MINT.toBase58()) {
+    return failure(new Error("Can't create wrapped SOL account"));
+  }
+  if (!wallet.publicKey) {
+    return failure(new Error('Wallet not connected'));
+  }
+
+  const instructions: TransactionInstruction[] = [];
+  const address = await getAssociatedTokenAddress(wallet.publicKey, mint);
+  let possibleTokenAccount: AccountInfo<Buffer> | null = null;
+
+  try {
+    possibleTokenAccount = await connection.getAccountInfo(address, CONFIRMED);
+  } catch (error) {
+    return failure(error);
+  }
+
+  if (!possibleTokenAccount) {
+    instructions.push(
+      Token.createAssociatedTokenAccountInstruction(
+        ASSOCIATED_TOKEN_ACCOUNT_PROGRAM_ID,
+        TOKEN_PROGRAM_ID,
+        mint,
+        address,
+        wallet.publicKey,
+        wallet.publicKey
+      )
+    );
+  }
+
+  return success({
+    address,
+    instructions,
+    cleanupInstructions: [],
+    signers: [],
+  });
+};
