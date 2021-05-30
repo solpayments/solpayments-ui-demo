@@ -12,7 +12,7 @@
   let withdrawPromise: Promise<void | string> | null = null;
   let withdrawProcessing = false;
   let withdrawResultTxId: string | undefined = undefined;
-  export let merchantToken: UserToken;
+  export let merchantToken: UserToken | undefined = undefined;
   export let orderInfo: OrderInfo;
 
   // used to ensure this store subscription does not cause mem leak
@@ -26,11 +26,11 @@
     withdrawProcessing = true;
     withdrawPromise = null;
     withdrawPromise =
-      $adapter && $adapter.publicKey && orderInfo && merchantToken
+      $adapter && $adapter.publicKey && orderInfo
         ? withdraw({
             connection: new Connection($solanaNetwork, FINALIZED),
             merchantAccount: orderInfo.account.data.merchant,
-            merchantTokenAccount: merchantToken.pubkey,
+            merchantTokenAccount: merchantToken?.pubkey,
             mint: orderInfo.account.data.mint,
             orderAccount: orderInfo.pubkey,
             orderTokenAccount: orderInfo.account.data.token,
@@ -55,21 +55,16 @@
 
 <main>
   {#if $connected && orderInfo}
-    {#if merchantToken}
-      <div class="row">
-        <div class="column">
-          <button
-            on:click={() => handleWithdrawPromise()}
-            disabled={withdrawProcessing || withdrawResultTxId != undefined}
-          >
-            {#if withdrawProcessing || withdrawResultTxId != undefined}Processing{:else}Withdraw {orderInfo.account.data.paidAmount.toLocaleString()}
-              {merchantToken.name} Now{/if}
-          </button>
-        </div>
+    <div class="row">
+      <div class="column">
+        <button
+          on:click={() => handleWithdrawPromise()}
+          disabled={withdrawProcessing || withdrawResultTxId != undefined}
+        >
+          {#if withdrawProcessing || withdrawResultTxId != undefined}Processing{:else}Withdraw{/if}
+        </button>
       </div>
-    {:else}
-      <p>select a token sir</p>
-    {/if}
+    </div>
 
     {#if withdrawPromise}
       {#await withdrawPromise}

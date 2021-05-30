@@ -8,7 +8,6 @@
     programId as globalProgramId,
     solanaNetwork,
   } from '../stores';
-  import type { UserToken } from '../stores';
   import { tokenMap } from '../stores/tokenRegistry';
   import { getOrderAccounts } from '../helpers/api';
   import { PROCESSED } from '../helpers/constants';
@@ -19,7 +18,6 @@
   let ordersPromise: Promise<any> | null = null;
   export let ordersTimeout = 1000 * 30;
   export let merchantAddress: PublicKey;
-  export let merchantToken: UserToken;
 
   const getTokenSymbol = (mint: PublicKey): string => {
     const result = $tokenMap.get(mint.toString());
@@ -99,7 +97,7 @@
               >
               <td>
                 {#if orderAccount.account.data.status === OrderStatus.Paid}
-                  <Withdraw {merchantToken} orderInfo={orderAccount} />
+                  <Withdraw orderInfo={orderAccount} />
                 {/if}
               </td>
             </tr>
