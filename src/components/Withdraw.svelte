@@ -51,16 +51,17 @@
 <main>
   {#if $connected && orderInfo}
     {#if merchantToken}
-      {#if !withdrawResultTxId}
-        <div class="row">
-          <div class="column">
-            <button on:click={() => handleWithdrawPromise()} disabled={withdrawProcessing}>
-              {#if withdrawProcessing}Processing{:else}Withdraw {orderInfo.account.data.paidAmount.toLocaleString()}
-                {merchantToken.name} Now{/if}
-            </button>
-          </div>
+      <div class="row">
+        <div class="column">
+          <button
+            on:click={() => handleWithdrawPromise()}
+            disabled={withdrawProcessing || withdrawResultTxId != undefined}
+          >
+            {#if withdrawProcessing || withdrawResultTxId != undefined}Processing{:else}Withdraw {orderInfo.account.data.paidAmount.toLocaleString()}
+              {merchantToken.name} Now{/if}
+          </button>
         </div>
-      {/if}
+      </div>
     {:else}
       <p>select a token sir</p>
     {/if}
