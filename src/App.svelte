@@ -36,8 +36,8 @@
   const subscriptionName = 'demo';
   const subscriptionPackages: Packages = {
     packages: [
-      { duration: 60 * 10, name: 'basic', price: 10000000 },
-      { duration: 60 * 60 * 24 * 30, name: 'advanced', price: 20000000 },
+      { duration: 60 * 10, name: 'basic', price: 100000000 },
+      { duration: 60 * 60 * 24 * 30, name: 'advanced', price: 200000000 },
     ],
   };
 
@@ -113,8 +113,10 @@
 <style>
   :root {
     --toastContainerTop: auto;
-    --toastContainerRight: auto;
-    --toastContainerBottom: 8rem;
-    --toastContainerLeft: calc(50vw - 8rem);
+    --toastBackground: #1e3574;
+    --toastContainerBottom: 3rem;
+    --toastBorderRadius: 1rem;
+    --toastMsgPadding: 1.1rem 1.5rem;
+    --toastWidth: auto;
   }
 </style>
