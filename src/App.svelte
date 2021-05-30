@@ -1,5 +1,6 @@
 <script lang="ts">
   import { SvelteToast } from '@zerodevx/svelte-toast';
+  import { PublicKey } from '@solana/web3.js';
   import { derived } from 'svelte/store';
   import { onMount } from 'svelte';
   import { links, Route, Router } from 'svelte-routing';
@@ -22,6 +23,7 @@
 
   export let mintAddress: string;
   export let url = '';
+  const mintKey = mintAddress ? new PublicKey(mintAddress) : undefined;
 
   const selectedToken = derived(userTokens, ($userTokens) => {
     const possible = $userTokens.filter(
@@ -30,7 +32,7 @@
     if (possible.length > 0) {
       return possible[0];
     }
-    return null;
+    return undefined;
   });
 
   const subscriptionName = 'demo';
@@ -77,17 +79,15 @@
             <Tokens showButton={false} showTokens={false} showInfo={false} />
           {/if}
 
-          {#if $selectedToken}
+          {#if mintKey}
             <Route path="/shop">
               <ShopDemo />
             </Route>
             <Route path="/shop/customer">
-              <ShopDemo><ShopCheckout tokenAccount={$selectedToken} /></ShopDemo>
+              <ShopDemo><ShopCheckout mint={mintKey} tokenAccount={$selectedToken} /></ShopDemo>
             </Route>
-            <Route path="/shop/orders"
-              ><ShopDemo><ShopOrders tokenAccount={$selectedToken} /></ShopDemo></Route
-            >
-            <Route path="/subscriptions">
+            <Route path="/shop/orders"><ShopDemo><ShopOrders /></ShopDemo></Route>
+            <!-- <Route path="/subscriptions">
               <SubscriptionDemo {subscriptionName} packages={subscriptionPackages} />
             </Route>
             <Route path="/subscriptions/customer">
@@ -99,7 +99,7 @@
               <SubscriptionDemo {subscriptionName} packages={subscriptionPackages}>
                 <SubscriptionOrders tokenAccount={$selectedToken} />
               </SubscriptionDemo>
-            </Route>
+            </Route> -->
           {:else}
             <Route path="/shop/*"><Wallet /></Route>
             <Route path="/subscriptions/*"><Wallet /></Route>
