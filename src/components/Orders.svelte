@@ -21,7 +21,7 @@
 
   const getTokenSymbol = (mint: PublicKey): string => {
     const result = $tokenMap.get(mint.toString());
-    return result ? result.name : abbreviateAddress(mint.toString());
+    return result ? result.symbol : abbreviateAddress(mint.toString());
   };
 
   const loadOrders = () => {
