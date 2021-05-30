@@ -2,7 +2,7 @@ import type { Connection, AccountInfo } from '@solana/web3.js';
 import { Account, PublicKey, SystemProgram, TransactionInstruction } from '@solana/web3.js';
 import { AccountLayout, Token } from '@solana/spl-token';
 import { CONFIRMED } from './constants';
-import { TOKEN_PROGRAM_ID, WRAPPED_SOL_MINT } from './solana';
+import { ASSOCIATED_TOKEN_ACCOUNT_PROGRAM_ID, TOKEN_PROGRAM_ID, WRAPPED_SOL_MINT } from './solana';
 import type { Result } from './result';
 import { failure, success } from './result';
 import type { WalletAdapter } from './types';
@@ -92,3 +92,20 @@ export const getOrCreateSOLTokenAccount = async (
     signers: [newAccount],
   });
 };
+
+/**
+ * Derives the associated token address for the given wallet address and token mint.
+ * @param owner Wallet address
+ * @param mint Mint address
+ * Get or create the associated token account for the native mint
+ */
+export async function getAssociatedTokenAddress(
+  owner: PublicKey,
+  mint: PublicKey
+): Promise<PublicKey> {
+  const [address] = await PublicKey.findProgramAddress(
+    [owner.toBuffer(), TOKEN_PROGRAM_ID.toBuffer(), mint.toBuffer()],
+    ASSOCIATED_TOKEN_ACCOUNT_PROGRAM_ID
+  );
+  return address;
+}
