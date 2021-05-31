@@ -1,14 +1,21 @@
 import { Buffer } from 'buffer';
+import type { Account, Connection } from '@solana/web3.js';
 import {
   PublicKey,
+  Transaction,
   TransactionInstruction,
   SYSVAR_CLOCK_PUBKEY,
   SYSVAR_RENT_PUBKEY,
   SystemProgram,
 } from '@solana/web3.js';
+import { Result, success } from '../helpers/result';
+import { failure } from '../helpers/result';
 import { TOKEN_PROGRAM_ID } from '../helpers/solana';
 import { Instruction, InstructionData, InstructionType } from '../helpers/instruction';
 import { MAX_SEED_LEN, PDA_SEED } from '../helpers/constants';
+import type { WalletAdapter } from '../helpers/types';
+import { WRAPPED_SOL_MINT } from '../helpers/solana';
+import { getOrCreateTokenAccount, getOrCreateSOLTokenAccount } from '../helpers/token';
 
 interface ExpressCheckoutTxParams {
   amount: number;
@@ -96,5 +103,116 @@ export const makeExpressCheckoutTransaction = async (
         }).encode()
       ),
     }).encode(),
+  });
+};
+
+export interface ExpressCheckoutParams {
+  amount: number;
+  buyerTokenAccount?: PublicKey /** the token account used to pay for this order */;
+  connection: Connection;
+  data?: string;
+  merchantAccount: PublicKey;
+  mint: PublicKey /** the mint in use; represents the currency */;
+  orderId: string /** the unique order id */;
+  programOwnerAccount: PublicKey;
+  secret: string /** a secret or encrypted string to verify this order */;
+  sponsorAccount: PublicKey;
+  thisProgramId: string;
+  wallet: WalletAdapter;
+}
+
+interface CheckoutTransactionResult {
+  transaction: Transaction;
+  signers: Account[];
+}
+
+export const makeCheckoutTransaction = async (
+  params: ExpressCheckoutParams
+): Promise<Result<CheckoutTransactionResult>> => {
+  const {
+    amount,
+    buyerTokenAccount,
+    connection,
+    data,
+    merchantAccount,
+    mint,
+    programOwnerAccount,
+    orderId,
+    thisProgramId,
+    secret,
+    sponsorAccount,
+    wallet,
+  } = params;
+  if (!wallet.publicKey) {
+    return failure(new Error('Wallet not connected'));
+  }
+
+  const programIdKey = new PublicKey(thisProgramId);
+  const transaction = new Transaction({ feePayer: wallet.publicKey });
+  let tokenAccount: PublicKey | undefined = buyerTokenAccount;
+  let beforeIxs: TransactionInstruction[] = [];
+  let afterIxs: TransactionInstruction[] = [];
+  let signers: Account[] = [];
+
+  if (!tokenAccount) {
+    let getAccResult;
+    if (mint.toBase58() === WRAPPED_SOL_MINT.toBase58()) {
+      getAccResult = await getOrCreateSOLTokenAccount({
+        amount,
+        connection,
+        wallet,
+      });
+    } else {
+      getAccResult = await getOrCreateTokenAccount({
+        connection,
+        mint,
+        wallet,
+      });
+    }
+
+    if (getAccResult.value) {
+      tokenAccount = getAccResult.value.address;
+      beforeIxs = getAccResult.value.instructions;
+      afterIxs = getAccResult.value.cleanupInstructions;
+      signers = getAccResult.value.signers;
+    }
+  }
+
+  // add the instructions to run before main instruction
+  beforeIxs.forEach((element) => {
+    transaction.add(element);
+  });
+
+  // add main instruction
+  if (tokenAccount !== undefined) {
+    try {
+      transaction.add(
+        await makeExpressCheckoutTransaction({
+          amount,
+          buyerTokenAccount: tokenAccount,
+          data,
+          merchantAccount,
+          mint,
+          orderId,
+          programId: programIdKey,
+          programOwnerAccount,
+          secret,
+          sponsorAccount,
+          signer: wallet.publicKey,
+        })
+      );
+    } catch (error) {
+      return failure(error);
+    }
+  }
+
+  // add the instructions to run after main instruction
+  afterIxs.forEach((element) => {
+    transaction.add(element);
+  });
+
+  return success({
+    transaction,
+    signers,
   });
 };

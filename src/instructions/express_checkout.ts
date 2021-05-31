@@ -1,123 +1,27 @@
-import type {
-  Account,
-  Connection,
-  TransactionInstruction,
-  TransactionSignature,
-} from '@solana/web3.js';
-import { PublicKey, Transaction } from '@solana/web3.js';
+import type { TransactionSignature } from '@solana/web3.js';
 import type { Result } from '../helpers/result';
 import { failure } from '../helpers/result';
-import type { WalletAdapter } from '../helpers/types';
 import {
   awaitTransactionSignatureConfirmation,
   signAndSendTransaction,
 } from '../helpers/transaction';
 import { InstructionType } from '../helpers/instruction';
-import { makeExpressCheckoutTransaction } from './utils';
-import { WRAPPED_SOL_MINT } from '../helpers/solana';
-import { getOrCreateTokenAccount, getOrCreateSOLTokenAccount } from '../helpers/token';
-
-interface ExpressCheckoutParams {
-  amount: number;
-  buyerTokenAccount?: PublicKey /** the token account used to pay for this order */;
-  connection: Connection;
-  data?: string;
-  merchantAccount: PublicKey;
-  mint: PublicKey /** the mint in use; represents the currency */;
-  orderId: string /** the unique order id */;
-  programOwnerAccount: PublicKey;
-  secret: string /** a secret or encrypted string to verify this order */;
-  sponsorAccount: PublicKey;
-  thisProgramId: string;
-  wallet: WalletAdapter;
-}
+import { makeCheckoutTransaction } from './utils';
+import type { ExpressCheckoutParams } from './utils';
 
 export const expressCheckout = async (
   params: ExpressCheckoutParams
 ): Promise<Result<TransactionSignature>> => {
-  const {
-    amount,
-    buyerTokenAccount,
-    connection,
-    data,
-    merchantAccount,
-    mint,
-    programOwnerAccount,
-    orderId,
-    thisProgramId,
-    secret,
-    sponsorAccount,
-    wallet,
-  } = params;
+  const { connection, wallet } = params;
   if (!wallet.publicKey) {
     return failure(new Error('Wallet not connected'));
   }
-  const programIdKey = new PublicKey(thisProgramId);
-  const transaction = new Transaction({ feePayer: wallet.publicKey });
-  let tokenAccount: PublicKey | undefined = buyerTokenAccount;
-  let beforeIxs: TransactionInstruction[] = [];
-  let afterIxs: TransactionInstruction[] = [];
-  let signers: Account[] = [];
-
-  if (!tokenAccount) {
-    let getAccResult;
-    if (mint.toBase58() === WRAPPED_SOL_MINT.toBase58()) {
-      getAccResult = await getOrCreateSOLTokenAccount({
-        amount,
-        connection,
-        wallet,
-      });
-    } else {
-      getAccResult = await getOrCreateTokenAccount({
-        connection,
-        mint,
-        wallet,
-      });
-    }
-
-    if (getAccResult.value) {
-      tokenAccount = getAccResult.value.address;
-      beforeIxs = getAccResult.value.instructions;
-      afterIxs = getAccResult.value.cleanupInstructions;
-      signers = getAccResult.value.signers;
-    }
+  const txResult = await makeCheckoutTransaction(params);
+  if (txResult.error) {
+    return txResult;
   }
-
-  // add the instructions to run before main instruction
-  beforeIxs.forEach((element) => {
-    transaction.add(element);
-  });
-
-  // add main instruction
-  if (tokenAccount !== undefined) {
-    try {
-      transaction.add(
-        await makeExpressCheckoutTransaction({
-          amount,
-          buyerTokenAccount: tokenAccount,
-          data,
-          merchantAccount,
-          mint,
-          orderId,
-          programId: programIdKey,
-          programOwnerAccount,
-          secret,
-          sponsorAccount,
-          signer: wallet.publicKey,
-        })
-      );
-    } catch (error) {
-      return failure(error);
-    }
-  }
-
-  // add the instructions to run after main instruction
-  afterIxs.forEach((element) => {
-    transaction.add(element);
-  });
-
+  const { transaction, signers } = txResult.value;
   const result = await signAndSendTransaction(connection, transaction, wallet, signers);
-
   if (result.value) {
     awaitTransactionSignatureConfirmation(
       result.value,
@@ -125,6 +29,5 @@ export const expressCheckout = async (
       connection
     );
   }
-
   return result;
 };
