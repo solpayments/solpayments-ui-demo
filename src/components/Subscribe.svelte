@@ -198,17 +198,15 @@
     getSubscriptionOrBust();
   });
 
+  $: disabled = subscriptionProcessing || subscriptionPromise != null || (!$token && !buyerToken);
+
   onDestroy(unsubscribe);
 </script>
 
 <main>
   {#if $connected && merchant}
-    <!-- TODO show ui friendly amount -->
     {#if $subscription}
-      <button
-        on:click={() => handleRenewSubscriptionPromise()}
-        disabled={subscriptionProcessing || subscriptionPromise != null}
-      >
+      <button on:click={() => handleRenewSubscriptionPromise()} {disabled}>
         {#if subscriptionProcessing || subscriptionPromise != null}Processing{:else}
           Renew {subscriptionPackage.name} for {getUiPrice(
             subscriptionPackage.price
@@ -217,10 +215,7 @@
         {/if}
       </button>
     {:else}
-      <button
-        on:click={() => handleSubscriptionPromise()}
-        disabled={subscriptionProcessing || subscriptionPromise != null}
-      >
+      <button on:click={() => handleSubscriptionPromise()} {disabled}>
         {#if subscriptionProcessing || subscriptionPromise != null}Processing{:else}
           Subscribe to {subscriptionPackage.name} for {getUiPrice(
             subscriptionPackage.price

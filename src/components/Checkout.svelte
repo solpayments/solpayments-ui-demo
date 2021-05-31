@@ -79,6 +79,8 @@
         : null;
   };
 
+  $: disabled = checkoutProcessing || checkoutPromise != null || (!$token && !buyerToken);
+
   onDestroy(unsubscribe);
 </script>
 
@@ -87,10 +89,7 @@
     <div class="row">
       <div class="column">
         <input type="number" min="0" bind:value={amount} />
-        <button
-          on:click={() => handleCheckoutPromise()}
-          disabled={checkoutProcessing || checkoutPromise != null || !$token}
-        >
+        <button on:click={() => handleCheckoutPromise()} {disabled}>
           {#if checkoutProcessing || checkoutPromise != null}Processing{:else}Pay {displayAmount.toLocaleString()}
             {tokenSymbol} Now{/if}
         </button>
