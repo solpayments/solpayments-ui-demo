@@ -15,9 +15,9 @@ import {
 import { Instruction, InstructionData, InstructionType } from '../helpers/instruction';
 import type { OrderSubscription } from '../helpers/data';
 import { makeCheckoutTransaction } from './utils';
-import type { ExpressCheckoutParams } from './utils';
+import type { BaseCheckoutParams } from './utils';
 
-interface SubscribeParams extends ExpressCheckoutParams {
+interface SubscribeParams extends BaseCheckoutParams {
   name: string;
   subscriptionAddress?: PublicKey;
 }

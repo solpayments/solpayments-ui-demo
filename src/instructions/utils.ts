@@ -106,19 +106,22 @@ export const makeExpressCheckoutTransaction = async (
   });
 };
 
-export interface ExpressCheckoutParams {
+export interface BaseCheckoutParams {
   amount: number;
   buyerTokenAccount?: PublicKey /** the token account used to pay for this order */;
   connection: Connection;
   data?: string;
   merchantAccount: PublicKey;
   mint: PublicKey /** the mint in use; represents the currency */;
-  orderId: string /** the unique order id */;
   programOwnerAccount: PublicKey;
-  secret: string /** a secret or encrypted string to verify this order */;
   sponsorAccount: PublicKey;
   thisProgramId: string;
   wallet: WalletAdapter;
+}
+
+export interface ExpressCheckoutParams extends BaseCheckoutParams {
+  orderId: string /** the unique order id */;
+  secret: string /** a secret or encrypted string to verify this order */;
 }
 
 interface CheckoutTransactionResult {

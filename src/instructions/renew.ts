@@ -9,9 +9,9 @@ import {
 import { Instruction, InstructionData, InstructionType } from '../helpers/instruction';
 import type { OrderSubscription } from '../helpers/data';
 import { makeCheckoutTransaction } from './utils';
-import type { ExpressCheckoutParams } from './utils';
+import type { BaseCheckoutParams } from './utils';
 
-interface RenewSubscribeParams extends ExpressCheckoutParams {
+interface RenewSubscribeParams extends BaseCheckoutParams {
   name: string;
   subscriptionAccount: PublicKey;
   quantity?: number;
