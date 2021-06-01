@@ -18,6 +18,7 @@
   export let data: Packages | undefined = undefined;
   export let addressStore: Writable<PublicKey | undefined>;
   let registrationProcessing = false;
+  let hasError = false;
   let registrationResultTxId: string | undefined = undefined;
   let registrationPromise: Promise<void | string> | null = null;
 
@@ -108,6 +109,14 @@
       : null;
   };
 
+  $: processing = (registrationPromise != null || registrationProcessing) && !hasError;
+
+  /** ensure you can retry after an error */
+  const onError = () => {
+    hasError = true;
+    return null;
+  };
+
   onDestroy(unsubscribe);
 </script>
 
@@ -127,12 +136,8 @@
         fee: {$merchant.account.fee} ||&nbsp; data: {$merchant.account.data}
       </p>
     {:else}
-      <button
-        on:click={() => handleRegistrationPromise()}
-        disabled={registrationPromise != null || registrationProcessing}
-      >
-        {#if registrationPromise != null || registrationProcessing}Registering Merchant{:else}Register
-          Merchant{/if}
+      <button on:click={() => handleRegistrationPromise()} disabled={processing}>
+        {#if processing}Registering Merchant{:else}Register Merchant{/if}
       </button>
     {/if}
   {/if}
@@ -143,6 +148,8 @@
     {:then txId}
       <TrasactionResult {txId} sideEffect={getMerchantOrBust($adapter)} />
     {:catch error}
+      <!-- TODO: find better way to call this func, as thisway is frowned upon in svelte-world-->
+      {onError() || ''}
       <p style="color: red">{error}</p>
     {/await}
   {/if}
