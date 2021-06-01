@@ -87,6 +87,7 @@
   });
 
   const handleRegistrationPromise = () => {
+    hasError = false;
     registrationProcessing = true;
     registrationPromise = $adapter
       ? registerMerchant({
