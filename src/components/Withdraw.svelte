@@ -9,11 +9,12 @@
   import type { OrderInfo } from '../helpers/layout';
   import TrasactionResult from './TrasactionResult.svelte';
 
+  export let merchantToken: UserToken | undefined = undefined;
+  export let orderInfo: OrderInfo;
   let withdrawPromise: Promise<void | string> | null = null;
   let withdrawProcessing = false;
   let withdrawResultTxId: string | undefined = undefined;
-  export let merchantToken: UserToken | undefined = undefined;
-  export let orderInfo: OrderInfo;
+  let hasError = false;
 
   // used to ensure this store subscription does not cause mem leak
   const unsubscribe = transactionsMap.subscribe((value) => {
@@ -23,8 +24,8 @@
   });
 
   const handleWithdrawPromise = () => {
+    hasError = false;
     withdrawProcessing = true;
-    withdrawPromise = null;
     withdrawPromise =
       $adapter && $adapter.publicKey && orderInfo
         ? withdraw({
@@ -50,6 +51,14 @@
         : null;
   };
 
+  $: processing = (withdrawProcessing || withdrawResultTxId != undefined) && !hasError;
+
+  /** ensure you can retry after an error */
+  const onError = () => {
+    hasError = true;
+    return null;
+  };
+
   onDestroy(unsubscribe);
 </script>
 
@@ -57,11 +66,8 @@
   {#if $connected && orderInfo}
     <div class="row">
       <div class="column">
-        <button
-          on:click={() => handleWithdrawPromise()}
-          disabled={withdrawProcessing || withdrawResultTxId != undefined}
-        >
-          {#if withdrawProcessing || withdrawResultTxId != undefined}Processing{:else}Withdraw{/if}
+        <button on:click={() => handleWithdrawPromise()} disabled={processing}>
+          {#if processing}Processing{:else}Withdraw{/if}
         </button>
       </div>
     </div>
@@ -72,6 +78,8 @@
       {:then txId}
         <TrasactionResult {txId} />
       {:catch error}
+        <!-- TODO: find better way to call this func, as thisway is frowned upon in svelte-world-->
+        {onError() || ''}
         <p style="color: red">{error}</p>
       {/await}
     {/if}
