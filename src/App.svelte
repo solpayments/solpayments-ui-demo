@@ -56,7 +56,7 @@
       <div class="row">
         <div class="column" use:links>
           <Router>
-            <a href="/" class="logo">SolPayments</a>
+            <a href="/" class="logo"><img src="logo.jpg" alt="SolPayments" /></a>
             <input class="menu-btn" type="checkbox" id="menu-btn" />
             <label class="menu-icon" for="menu-btn"><span class="navicon" /></label>
             <ul class="menu">
@@ -111,6 +111,9 @@
 </Router>
 
 <style>
+  .logo img {
+    max-width: 20rem;
+  }
   :root {
     --toastContainerTop: auto;
     --toastBackground: #1e3574;
