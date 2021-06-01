@@ -34,6 +34,7 @@
   let subscriptionProcessing = false;
   let subscriptionResultTxId: string | undefined = undefined;
   let subscriptionAddress: PublicKey | undefined = undefined;
+  let hasError = false;
 
   const token = derived(tokenMap, ($tokenMap) => {
     if ($tokenMap) {
@@ -118,8 +119,8 @@
   };
 
   const handleSubscriptionPromise = () => {
+    hasError = false;
     subscriptionProcessing = true;
-    subscriptionPromise = null;
     subscriptionPromise =
       $adapter && $adapter.publicKey && merchant
         ? subscribe({
@@ -149,8 +150,8 @@
   };
 
   const handleRenewSubscriptionPromise = () => {
+    hasError = false;
     subscriptionProcessing = true;
-    subscriptionPromise = null;
     subscriptionPromise =
       $adapter && $adapter.publicKey && merchant && subscriptionAddress
         ? renew_subscription({
@@ -198,7 +199,14 @@
     getSubscriptionOrBust();
   });
 
-  $: disabled = subscriptionProcessing || subscriptionPromise != null || (!$token && !buyerToken);
+  $: processing = (subscriptionProcessing || subscriptionPromise != null) && !hasError;
+  $: disabled = processing || (!$token && !buyerToken);
+
+  /** ensure you can retry after an error */
+  const onError = () => {
+    hasError = true;
+    return null;
+  };
 
   onDestroy(unsubscribe);
 </script>
@@ -207,7 +215,7 @@
   {#if $connected && merchant}
     {#if $subscription}
       <button on:click={() => handleRenewSubscriptionPromise()} {disabled}>
-        {#if subscriptionProcessing || subscriptionPromise != null}Processing{:else}
+        {#if processing}Processing{:else}
           Renew {subscriptionPackage.name} for {getUiPrice(
             subscriptionPackage.price
           ).toLocaleString()}
@@ -216,7 +224,7 @@
       </button>
     {:else}
       <button on:click={() => handleSubscriptionPromise()} {disabled}>
-        {#if subscriptionProcessing || subscriptionPromise != null}Processing{:else}
+        {#if processing}Processing{:else}
           Subscribe to {subscriptionPackage.name} for {getUiPrice(
             subscriptionPackage.price
           ).toLocaleString()}
@@ -232,6 +240,8 @@
       {:then txId}
         <TrasactionResult {txId} sideEffect={getSubscriptionOrBust(true)} />
       {:catch error}
+        <!-- TODO: find better way to call this func, as thisway is frowned upon in svelte-world-->
+        {onError() || ''}
         <p style="color: red">{error}</p>
       {/await}
     {/if}
