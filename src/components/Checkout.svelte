@@ -11,15 +11,16 @@
   import type { Merchant } from '../helpers/layout';
   import TrasactionResult from './TrasactionResult.svelte';
 
-  let checkoutPromise: Promise<void | string> | null = null;
-  let checkoutProcessing = false;
-  let checkoutResultTxId: string | undefined = undefined;
   export let orderId: string;
   export let secret: string;
   export let buyerToken: UserToken | undefined = undefined;
   export let amount: number = 0;
   export let merchant: Merchant;
   export let mint: PublicKey;
+  let checkoutPromise: Promise<void | string> | null = null;
+  let checkoutProcessing = false;
+  let checkoutResultTxId: string | undefined = undefined;
+  let hasError = false;
 
   const token = derived(tokenMap, ($tokenMap) => {
     if ($tokenMap) {
@@ -49,8 +50,8 @@
   });
 
   const handleCheckoutPromise = () => {
+    hasError = false;
     checkoutProcessing = true;
-    checkoutPromise = null;
     checkoutPromise =
       $adapter && $adapter.publicKey && merchant
         ? expressCheckout({
@@ -79,7 +80,14 @@
         : null;
   };
 
-  $: disabled = checkoutProcessing || checkoutPromise != null || (!$token && !buyerToken);
+  $: processing = (checkoutProcessing || checkoutPromise != null) && !hasError;
+  $: disabled = processing || (!$token && !buyerToken);
+
+  /** ensure you can retry after an error */
+  const onError = () => {
+    hasError = true;
+    return null;
+  };
 
   onDestroy(unsubscribe);
 </script>
@@ -90,7 +98,7 @@
       <div class="column">
         <input type="number" min="0" bind:value={amount} />
         <button on:click={() => handleCheckoutPromise()} {disabled}>
-          {#if checkoutProcessing || checkoutPromise != null}Processing{:else}Pay {displayAmount.toLocaleString()}
+          {#if processing}Processing{:else}Pay {displayAmount.toLocaleString()}
             {tokenSymbol} Now{/if}
         </button>
       </div>
@@ -102,6 +110,8 @@
       {:then txId}
         <TrasactionResult {txId} />
       {:catch error}
+        <!-- TODO: find better way to call this func, as thisway is frowned upon in svelte-world-->
+        {onError() || ''}
         <p style="color: red">{error}</p>
       {/await}
     {/if}
