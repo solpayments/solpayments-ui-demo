@@ -7,6 +7,5 @@
 {#if !$connected}
   <Wallet />
 {:else}
-  <h3>Tokens</h3>
-  <Tokens />
+  <Tokens showInfo={false} showButton={false} showTokens={false} />
 {/if}
