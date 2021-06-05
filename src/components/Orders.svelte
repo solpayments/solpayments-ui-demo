@@ -55,7 +55,9 @@
 
 <main>
   {#if $connected}
-    <button class="button button-small" on:click={() => loadOrders()}> Refresh </button>
+    <button class="button button-outline button-small" on:click={() => loadOrders()}>
+      Refresh
+    </button>
 
     {#if ordersPromise}
       {#await ordersPromise}
@@ -107,3 +109,13 @@
     {/if}
   {/if}
 </main>
+
+<style>
+  .button-small {
+    font-size: 0.9rem;
+    font-weight: 400;
+    height: 2.5rem;
+    line-height: 1rem;
+    padding: 0rem 1rem;
+  }
+</style>
