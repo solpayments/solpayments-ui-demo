@@ -26,6 +26,7 @@
   const handleWithdrawPromise = () => {
     hasError = false;
     withdrawProcessing = true;
+    withdrawResultTxId = undefined;
     withdrawPromise =
       $adapter && $adapter.publicKey && orderInfo
         ? withdraw({
