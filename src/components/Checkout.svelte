@@ -11,7 +11,6 @@
   import type { Merchant } from '../helpers/layout';
   import TrasactionResult from './TrasactionResult.svelte';
 
-  export let orderId: string;
   export let secret: string;
   export let buyerToken: UserToken | undefined = undefined;
   export let amount: number = 0;
@@ -21,6 +20,7 @@
   let checkoutProcessing = false;
   let checkoutResultTxId: string | undefined = undefined;
   let hasError = false;
+  $: orderId = `order-${new Date().valueOf()}`;
 
   const token = derived(tokenMap, ($tokenMap) => {
     if ($tokenMap) {
@@ -52,6 +52,7 @@
   const handleCheckoutPromise = () => {
     hasError = false;
     checkoutProcessing = true;
+    checkoutResultTxId = undefined;
     checkoutPromise =
       $adapter && $adapter.publicKey && merchant
         ? expressCheckout({
@@ -72,12 +73,19 @@
                 throw result.error;
               }
               checkoutResultTxId = result.value;
+              // dirty hack to ensure you can do multiple orders in demo
+              orderId = orderId + 1;
               return result.value;
             })
             .finally(() => {
               checkoutProcessing = false;
             })
         : null;
+  };
+
+  let showAmount = false;
+  const showTheAmount = () => {
+    showAmount = !showAmount;
   };
 
   $: processing = (checkoutProcessing || checkoutPromise != null) && !hasError;
@@ -94,15 +102,37 @@
 
 <main>
   {#if $connected && merchant}
+    {#if showAmount}
+      <div class="row">
+        <div class="column column-25">
+          <fieldset>
+            <label for="amount">Amount</label>
+            <input name="amount" type="number" min="0" bind:value={amount} />
+          </fieldset>
+        </div>
+      </div>
+    {/if}
     <div class="row">
       <div class="column">
-        <input type="number" min="0" bind:value={amount} />
         <button on:click={() => handleCheckoutPromise()} {disabled}>
           {#if processing}Processing{:else}Pay {displayAmount.toLocaleString()}
             {tokenSymbol} Now{/if}
         </button>
       </div>
     </div>
+    {#if !processing}
+      <div class="row">
+        <div class="column">
+          <button class="button button-clear button-small" on:click={showTheAmount}>
+            {#if showAmount}
+              Hide Amount
+            {:else}
+              Change Amount
+            {/if}
+          </button>
+        </div>
+      </div>
+    {/if}
 
     {#if checkoutPromise}
       {#await checkoutPromise}
@@ -117,3 +147,13 @@
     {/if}
   {/if}
 </main>
+
+<style>
+  .button-small {
+    font-size: 0.9rem;
+    font-weight: 400;
+    height: 1.5rem;
+    line-height: 1rem;
+    padding: 0rem 1rem;
+  }
+</style>
