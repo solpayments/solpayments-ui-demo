@@ -89,6 +89,7 @@
   const handleRegistrationPromise = () => {
     hasError = false;
     registrationProcessing = true;
+    registrationResultTxId = undefined;
     registrationPromise = $adapter
       ? registerMerchant({
           connection: new Connection($solanaNetwork, FINALIZED),
