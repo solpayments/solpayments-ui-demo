@@ -17,8 +17,8 @@
 </script>
 
 <main class="shop">
-  <h2>E-commerce Payment Processor</h2>
   {#if $connected}
+    <h2>E-commerce Payment Processor Demo</h2>
     <div class="row">
       <div class="column column-25">
         <ol use:links>
@@ -41,12 +41,12 @@
           <div class="merchant-account">
             <h3>Merchant Account</h3>
             <p>
-              Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor
-              incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud
-              exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure
-              dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur.
-              Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt
-              mollit anim id est laborum.
+              This demo showcases a "Pay Now"/"Buy Now" button that is meant to be integrated in
+              e-commerce software such as Shopify or WooCommerce.
+            </p>
+            <p>
+              The process of setting this up starts with registering a merchant account with the
+              SolPayments program.
             </p>
             <div class="row">
               <div class="column">
