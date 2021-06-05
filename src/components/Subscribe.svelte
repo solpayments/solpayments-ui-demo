@@ -121,6 +121,7 @@
   const handleSubscriptionPromise = () => {
     hasError = false;
     subscriptionProcessing = true;
+    subscriptionResultTxId = undefined;
     subscriptionPromise =
       $adapter && $adapter.publicKey && merchant
         ? subscribe({
@@ -152,6 +153,7 @@
   const handleRenewSubscriptionPromise = () => {
     hasError = false;
     subscriptionProcessing = true;
+    subscriptionResultTxId = undefined;
     subscriptionPromise =
       $adapter && $adapter.publicKey && merchant && subscriptionAddress
         ? renew_subscription({
