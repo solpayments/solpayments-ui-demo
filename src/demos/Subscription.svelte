@@ -27,7 +27,7 @@
 
 <main class="subscriptions">
   {#if $connected}
-    <h2>Subscription Demo</h2>
+    <h2>Subscriptions Demo</h2>
     <div class="row">
       <div class="column column-25">
         <ol use:links>

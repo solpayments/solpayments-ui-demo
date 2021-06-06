@@ -54,8 +54,8 @@
             <input class="menu-btn" type="checkbox" id="menu-btn" />
             <label class="menu-icon" for="menu-btn"><span class="navicon" /></label>
             <ul class="menu">
-              <li><a href="/shop">Shop</a></li>
-              <li><a href="/subscriptions">Subscription</a></li>
+              <li><a href="/shop">E-commerce</a></li>
+              <li><a href="/subscriptions">Subscriptions</a></li>
               <Button />
             </ul>
           </Router>
