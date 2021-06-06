@@ -13,7 +13,8 @@
 
   export let tokenAccount: UserToken | undefined = undefined;
   export let mint: PublicKey;
-  const packages = getContext<Packages>('packages');
+  let packages: Packages | undefined = undefined;
+
   const subscriptionName = getContext<string>('subscriptionName');
 
   const subscriptionMerchant = derived(merchantRegistry, ($merchantRegistry) => {
@@ -22,6 +23,10 @@
     }
     return null;
   });
+
+  if ($subscriptionMerchant) {
+    packages = JSON.parse($subscriptionMerchant.account.data);
+  }
 </script>
 
 <main class="subscription-checkout">
