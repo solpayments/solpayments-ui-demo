@@ -22,8 +22,10 @@
         decentralized apps.
       </p>
       <p>
-        We have the following demos ready for you to try out :)
+        We have the following demos ready for you to try out :). SolPayments is currently only on
+        Solana's <strong>devnet</strong> network.
       </p>
+      <hr/>
     </div>
   </div>
   <div class="row" use:links>
