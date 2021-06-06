@@ -33,10 +33,7 @@
       </p>
       <p>Try it out below :)</p>
       <ExpressCheckout merchant={$merchant} {secret} {mint} {amount} buyerToken={tokenAccount} />
-      <p class="tx-sm">
-        ** for the purpose of this demo, the currency is set to SOL, but you can use any Solana
-        token.
-      </p>
+      <p class="tx-sm">** for the purpose of this demo, the currency is set to SOL</p>
     {:else}
       <Redirect to="/shop" state={{ from: location }} />
     {/if}

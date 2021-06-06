@@ -33,7 +33,20 @@
   {#if $connected}
     {#if $subscriptionMerchant && packages && subscriptionName}
       <div class="row">
-        {#each packages.packages as subscriptionPackage}
+        <div class="column">
+          <h3>Subscriptions</h3>
+          <p>
+            Below is a simulation of how one may purchase and renew subscriptions on a decentralized
+            web application.
+          </p>
+          <p>
+            The subscriptions that appear on this page are those ones which has been registered
+            previouslt in this demo.
+          </p>
+        </div>
+      </div>
+      {#each packages.packages as subscriptionPackage}
+        <div class="row">
           <div class="column">
             <Subscribe
               merchant={$subscriptionMerchant}
@@ -43,8 +56,8 @@
               buyerToken={tokenAccount}
             />
           </div>
-        {/each}
-      </div>
+        </div>
+      {/each}
     {:else}
       <Redirect to="/subscriptions" state={{ from: location }} />
     {/if}
