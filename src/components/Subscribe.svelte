@@ -211,85 +211,115 @@
     return null;
   };
 
+  $: subscriptionCssClass = $subscription
+    ? $clock && $subscription.account.period_end > $clock.unixTimestamp
+      ? 'active'
+      : 'expired'
+    : '';
+
   onDestroy(unsubscribe);
 </script>
 
-<main>
-  {#if $connected && merchant}
-    {#if $subscription}
-      <button on:click={() => handleRenewSubscriptionPromise()} {disabled}>
-        {#if processing}Processing{:else}
-          Renew {subscriptionPackage.name} for {getUiPrice(
-            subscriptionPackage.price
-          ).toLocaleString()}
-          {tokenSymbol}
-        {/if}
-      </button>
-    {:else}
-      <button on:click={() => handleSubscriptionPromise()} {disabled}>
-        {#if processing}Processing{:else}
-          Subscribe to {subscriptionPackage.name} for {getUiPrice(
-            subscriptionPackage.price
-          ).toLocaleString()}
-          {tokenSymbol}
-        {/if}
-      </button>
-    {/if}
-    <p>Duration {forHumans(subscriptionPackage.duration)}</p>
-
-    {#if subscriptionPromise}
-      {#await subscriptionPromise}
-        <p>processing</p>
-      {:then txId}
-        <TrasactionResult {txId} sideEffect={getSubscriptionOrBust(true)} />
-      {:catch error}
-        <!-- TODO: find better way to call this func, as thisway is frowned upon in svelte-world-->
-        {onError() || ''}
-        <p style="color: red">{error}</p>
-      {/await}
-    {/if}
-  {/if}
-
-  {#if $subscription}
-    <table>
-      <tbody>
-        <tr>
-          <th> Address </th>
-          <td>
-            {$subscription.address}
-          </td>
-        </tr>
-        <tr>
-          <th> Name </th>
-          <td>
-            {$subscription.account.name}
-          </td>
-        </tr>
-        <tr>
-          <th> Date Joined </th>
-          <td>{new Date($subscription.account.joined * 1000).toLocaleString()}</td>
-        </tr>
-        <tr>
-          <th> Current Period Start </th>
-          <td>{new Date($subscription.account.period_start * 1000).toLocaleString()}</td>
-        </tr>
-        <tr>
-          {#if $clock && $subscription.account.period_end > $clock.unixTimestamp}
-            <th style="color: green"> Active Until </th>
+<div class="row subscription {subscriptionCssClass}">
+  <div class="column">
+    <h4>{subscriptionPackage.name}</h4>
+    <div class="inner">
+      {#if $subscription}
+        <table>
+          <tbody>
+            <tr>
+              <th> Address </th>
+              <td>
+                {$subscription.address}
+              </td>
+            </tr>
+            <tr>
+              <th> Date Joined </th>
+              <td>{new Date($subscription.account.joined * 1000).toLocaleString()}</td>
+            </tr>
+            <tr>
+              <th> Current Period Start </th>
+              <td>{new Date($subscription.account.period_start * 1000).toLocaleString()}</td>
+            </tr>
+            <tr>
+              {#if $clock && $subscription.account.period_end > $clock.unixTimestamp}
+                <th style="color: green"> Active Until </th>
+              {:else}
+                <th style="color: red"> Ended On </th>
+              {/if}
+              <td>
+                {new Date($subscription.account.period_end * 1000).toLocaleString()}
+                <br /><span class="tx-sm">
+                  The {#if $clock && $subscription.account.period_end > $clock.unixTimestamp}current{:else}last{/if}
+                  period end date
+                </span>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      {/if}
+      {#if $connected && merchant}
+        <div class="inside">
+          {#if $subscription}
+            <button on:click={() => handleRenewSubscriptionPromise()} {disabled}>
+              {#if processing}Processing{:else}
+                Renew {subscriptionPackage.name} for {getUiPrice(
+                  subscriptionPackage.price
+                ).toLocaleString()}
+                {tokenSymbol}
+              {/if}
+            </button>
           {:else}
-            <th style="color: red"> Ended On </th>
+            <button on:click={() => handleSubscriptionPromise()} {disabled}>
+              {#if processing}Processing{:else}
+                Subscribe to {subscriptionPackage.name} for {getUiPrice(
+                  subscriptionPackage.price
+                ).toLocaleString()}
+                {tokenSymbol}
+              {/if}
+            </button>
           {/if}
-          <td>
-            {new Date($subscription.account.period_end * 1000).toLocaleString()}
-            <br /><span class="tx-sm">
-              The {#if $clock && $subscription.account.period_end > $clock.unixTimestamp}current{:else}last{/if}
-              period end date
-            </span>
-          </td>
-        </tr>
-      </tbody>
-    </table>
-  {:else}
-    <p style="color: orange">Not subscribed to {subscriptionPackage.name}</p>
-  {/if}
-</main>
+          <br />
+          <p>Duration {forHumans(subscriptionPackage.duration)}</p>
+          {#if subscriptionPromise}
+            {#await subscriptionPromise}
+              <!-- silence -->
+            {:then txId}
+              <TrasactionResult {txId} sideEffect={getSubscriptionOrBust(true)} />
+            {:catch error}
+              <!-- TODO: find better way to call this func, as this way is frowned upon in svelte-world-->
+              {onError() || ''}
+              <p style="color: red">{error}</p>
+            {/await}
+          {/if}
+        </div>
+      {/if}
+    </div>
+  </div>
+</div>
+
+<style>
+  .subscription {
+    background-color: whitesmoke;
+    margin-bottom: 2rem;
+    padding: 1rem;
+  }
+
+  .subscription.expired {
+    background-color: antiquewhite;
+  }
+
+  .subscription.active {
+    background-color: aliceblue;
+  }
+
+  .subscription table,
+  .subscription h4,
+  .subscription p {
+    margin-bottom: 0;
+  }
+
+  .subscription button {
+    margin-top: 2.5rem;
+  }
+</style>
