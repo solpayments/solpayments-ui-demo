@@ -1,8 +1,9 @@
 import { derived, writable } from 'svelte/store';
+import { PROGRAM_ID } from '../helpers/config';
+import { abbreviateAddress } from '../helpers/utils';
 import type { WalletAdapter } from '../helpers/types';
 import type { OrderInfo } from '../helpers/layout';
 import type { ClockInfo, TokenFromApi } from '../helpers/solana';
-import { abbreviateAddress } from '../helpers/utils';
 import type { TokenMap } from './tokenRegistry';
 
 export type Adapter = WalletAdapter | undefined;
@@ -31,7 +32,7 @@ export const orderAccounts = writable<OrderInfo[]>([]);
 /** the network URL */
 export const solanaNetwork = writable<string>('https://api.mainnet-beta.solana.com');
 /** the immutable program id */
-export const programId = writable<string>('EQmxue1EHABzXj7qETXseC5iVSnCZtZ6Y94UQuwyawuP');
+export const programId = writable<string>(PROGRAM_ID);
 
 // helpers
 export const updateUserTokens = (userTokenList: TokenFromApi[], allTokens: TokenMap): void => {

@@ -4,6 +4,7 @@
   import { derived } from 'svelte/store';
   import { onMount } from 'svelte';
   import { links, Route, Router } from 'svelte-routing';
+  import { RPC_API_URL } from './helpers/config';
   import { connected, solanaNetwork, userTokens } from './stores';
   import { getTokenRegistry } from './stores/tokenRegistry';
   import Button from './components/Wallet/Button.svelte';
@@ -38,7 +39,7 @@
 
   const toastOptions = { reversed: true, intro: { y: 192 } };
 
-  solanaNetwork.update(() => 'http://localhost:8899');
+  solanaNetwork.update(() => RPC_API_URL);
   onMount(async () => getTokenRegistry());
 </script>
 
