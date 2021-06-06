@@ -6,6 +6,7 @@
   import { fetchTokenAccounts } from '../helpers/api';
   import { PROCESSED } from '../helpers/constants';
   import { TOKEN_PROGRAM_ID } from '../helpers/solana';
+  import { onInterval } from '../helpers/utils';
   import type { TokenFromApi } from '../helpers/solana';
 
   export let showButton = true;
@@ -31,14 +32,10 @@
     }
   };
 
-  const continousTokenReload = async () => {
-    loadTokens();
-    await new Promise((r) => setTimeout(r, tokenTimeout));
-    continousTokenReload();
-  };
+  onInterval(() => loadTokens(), tokenTimeout);
 
   onMount(async () => {
-    continousTokenReload();
+    loadTokens();
   });
 </script>
 
