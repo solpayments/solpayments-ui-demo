@@ -17,6 +17,7 @@
   import { subscribe } from '../instructions/subscribe';
   import { DEFAULT_DECIMALS, FINALIZED, PROCESSED, PROGRAM_OWNER } from '../helpers/constants';
   import { getClockAccount, getSubscriptionByAddress } from '../helpers/api';
+  import { forHumans } from '../helpers/utils';
   import type { Package } from '../helpers/data';
   import type { Merchant } from '../helpers/layout';
   import TrasactionResult from './TrasactionResult.svelte';
@@ -234,7 +235,7 @@
         {/if}
       </button>
     {/if}
-    <p>Duration {subscriptionPackage.duration} seconds</p>
+    <p>Duration {forHumans(subscriptionPackage.duration)}</p>
 
     {#if subscriptionPromise}
       {#await subscriptionPromise}
