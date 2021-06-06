@@ -106,7 +106,7 @@
     return null;
   });
 
-  const getSubscriptionOrBust = async (force: boolean = false) => {
+  const getSubscriptionOrBust = async (force = false) => {
     // try and get subscription if we dont have it or if its expired
     while (
       !$subscription ||

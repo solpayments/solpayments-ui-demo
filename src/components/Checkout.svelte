@@ -13,7 +13,7 @@
 
   export let secret: string;
   export let buyerToken: UserToken | undefined = undefined;
-  export let amount: number = 0;
+  export let amount = 0;
   export let merchant: Merchant;
   export let mint: PublicKey;
   let checkoutPromise: Promise<void | string> | null = null;
