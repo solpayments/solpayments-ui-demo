@@ -4,7 +4,6 @@
   import { derived } from 'svelte/store';
   import { onMount } from 'svelte';
   import { links, Route, Router } from 'svelte-routing';
-  import type { Packages } from './helpers/data';
   import { connected, solanaNetwork, userTokens } from './stores';
   import { getTokenRegistry } from './stores/tokenRegistry';
   import Button from './components/Wallet/Button.svelte';
@@ -36,12 +35,6 @@
   });
 
   const subscriptionName = 'demo';
-  const subscriptionPackages: Packages = {
-    packages: [
-      { duration: 60 * 10, name: 'basic', price: 100000000 },
-      { duration: 60 * 60 * 24 * 30, name: 'advanced', price: 200000000 },
-    ],
-  };
 
   const toastOptions = { reversed: true, intro: { y: 192 } };
 
@@ -88,15 +81,15 @@
             </Route>
             <Route path="/shop/orders"><ShopDemo><ShopOrders /></ShopDemo></Route>
             <Route path="/subscriptions">
-              <SubscriptionDemo {subscriptionName} packages={subscriptionPackages} />
+              <SubscriptionDemo {subscriptionName} />
             </Route>
             <Route path="/subscriptions/customer">
-              <SubscriptionDemo {subscriptionName} packages={subscriptionPackages}>
+              <SubscriptionDemo {subscriptionName}>
                 <SubscribeDemo mint={mintKey} tokenAccount={$selectedToken} />
               </SubscriptionDemo>
             </Route>
             <Route path="/subscriptions/orders">
-              <SubscriptionDemo {subscriptionName} packages={subscriptionPackages}>
+              <SubscriptionDemo {subscriptionName}>
                 <SubscriptionOrders />
               </SubscriptionDemo>
             </Route>
