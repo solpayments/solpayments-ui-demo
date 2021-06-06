@@ -1,3 +1,5 @@
+import { onDestroy } from 'svelte';
+
 export const abbreviateAddress = (address: string): string => {
   return address.slice(0, 4) + '…' + address.slice(address.length - 4);
 };
@@ -38,6 +40,14 @@ export const forHumans = (seconds: number): string => {
     }`;
   }
   return returnText.trim();
+};
+
+export const onInterval = (callback: () => void, milliseconds: number): void => {
+  const interval = setInterval(callback, milliseconds);
+
+  onDestroy(() => {
+    clearInterval(interval);
+  });
 };
 
 export const sleep = (t: number): Promise<unknown> =>
