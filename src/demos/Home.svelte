@@ -8,15 +8,32 @@
 {#if !$connected}
   <Wallet />
 {:else}
-  <Tokens showInfo={false} showButton={false} showTokens={false} />
+  <div class="row">
+    <div class="column">
+      <Tokens showInfo={false} showButton={false} showTokens={false} />
+    </div>
+  </div>
+  <div class="row">
+    <div class="column">
+      <h3>Welcome to SolPayments demo</h3>
+      <p>
+        SolPayments is a payment processing platform for crypto-currencies which allows individuals
+        and businesses of all sizes to accept payments on their websites, online shops, and
+        decentralized apps.
+      </p>
+      <p>
+        We have the following demos ready for you to try out :)
+      </p>
+    </div>
+  </div>
   <div class="row" use:links>
     <div class="column">
-      <h3>E-commerce platforms</h3>
+      <h3>E-commerce</h3>
       <p>
         Payment procesor meant to be integrated into e-commerce software such as Shopify,
         WooCommerce, etc.
       </p>
-      <a class="button" href="/shop">Checkout demo</a>
+      <a class="button" href="/shop">E-commerce demo</a>
     </div>
     <div class="column">
       <h3>Subscriptions</h3>

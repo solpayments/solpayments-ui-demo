@@ -76,6 +76,7 @@
 </script>
 
 <div class="packages">
+  <h4>Configure subscription packages</h4>
   <table>
     <thead>
       <th>Name</th>
