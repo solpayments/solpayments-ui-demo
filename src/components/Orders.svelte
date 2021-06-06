@@ -12,7 +12,7 @@
   import { getOrderAccounts } from '../helpers/api';
   import { PROCESSED } from '../helpers/constants';
   import { OrderStatus } from '../helpers/layout';
-  import { abbreviateAddress } from '../helpers/utils';
+  import { abbreviateAddress, onInterval, sleep } from '../helpers/utils';
   import Withdraw from './Withdraw.svelte';
 
   let ordersPromise: Promise<any> | null = null;
@@ -32,7 +32,9 @@
         programId: $globalProgramId,
         tokenRegistry: $tokenMap,
       }).then((result) => {
-        ordersPromise = null;
+        sleep(1000).then(() => {
+          ordersPromise = null;
+        });
         if (result.error) {
           throw result.error;
         } else {
@@ -42,21 +44,19 @@
     }
   };
 
-  const continuousOrderReload = async () => {
-    loadOrders();
-    await new Promise((r) => setTimeout(r, ordersTimeout));
-    continuousOrderReload();
-  };
+  $: processing = ordersPromise !== null;
+
+  onInterval(() => loadOrders(), ordersTimeout);
 
   onMount(async () => {
-    continuousOrderReload();
+    loadOrders();
   });
 </script>
 
 <main>
   {#if $connected}
     <button class="button button-outline button-small" on:click={() => loadOrders()}>
-      Refresh
+      {#if processing}Refreshing{:else}Refresh{/if}
     </button>
 
     {#if ordersPromise}
