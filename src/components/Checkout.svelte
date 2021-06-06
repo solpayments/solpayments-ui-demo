@@ -107,7 +107,7 @@
         <div class="column column-25">
           <fieldset>
             <label for="amount">Amount</label>
-            <input name="amount" type="number" min="0" bind:value={amount} />
+            <input name="amount" type="number" min="0" bind:value={amount} {disabled} />
           </fieldset>
         </div>
       </div>
@@ -140,7 +140,7 @@
       {:then txId}
         <TrasactionResult {txId} />
       {:catch error}
-        <!-- TODO: find better way to call this func, as thisway is frowned upon in svelte-world-->
+        <!-- TODO: find better way to call this func, as this way is frowned upon in svelte-world-->
         {onError() || ''}
         <p style="color: red">{error}</p>
       {/await}

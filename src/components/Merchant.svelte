@@ -150,7 +150,7 @@
     {:then txId}
       <TrasactionResult {txId} sideEffect={getMerchantOrBust($adapter)} />
     {:catch error}
-      <!-- TODO: find better way to call this func, as thisway is frowned upon in svelte-world-->
+      <!-- TODO: find better way to call this func, as this way is frowned upon in svelte-world-->
       {onError() || ''}
       <p style="color: red">{error}</p>
     {/await}
