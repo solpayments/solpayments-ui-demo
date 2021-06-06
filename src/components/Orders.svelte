@@ -73,7 +73,6 @@
       <table>
         <thead>
           <tr>
-            <th>ID</th>
             <th>Created</th>
             <th>Status</th>
             <th>Expected</th>
@@ -83,10 +82,9 @@
         </thead>
         <tbody>
           {#each $orderAccounts.sort((a, b) =>
-            a.account.data.created > b.account.data.created ? 1 : -1
+            a.account.data.created < b.account.data.created ? 1 : -1
           ) as orderAccount}
             <tr>
-              <td>{orderAccount.account.data.orderId}</td>
               <td>{new Date(orderAccount.account.data.created * 1000).toLocaleString()}</td>
               <td>{OrderStatus[orderAccount.account.data.status]}</td>
               <td
