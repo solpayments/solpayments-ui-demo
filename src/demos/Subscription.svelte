@@ -2,14 +2,13 @@
   import { setContext } from 'svelte';
   import { links } from 'svelte-routing';
   import { derived } from 'svelte/store';
-  import type { Packages } from '../helpers/data';
   import { connected } from '../stores';
   import { merchantRegistry } from '../stores/merchants';
   import Wallet from '../components/Wallet/Wallet.svelte';
   import MerchantComponent from '../components/Merchant.svelte';
-  import { subscriptionAddressStore as addressStore } from './demo';
+  import PackagesForm from './partial/PackagesForm.svelte';
+  import { subscriptionAddressStore as addressStore, subscriptionPackages } from './demo';
 
-  export let packages: Packages;
   export let subscriptionName: string;
 
   const subscriptionMerchant = derived(merchantRegistry, ($merchantRegistry) => {
@@ -19,13 +18,16 @@
     return null;
   });
 
-  setContext('packages', packages);
+  $: packages = {
+    packages: $subscriptionPackages,
+  };
+
   setContext('subscriptionName', subscriptionName);
 </script>
 
 <main class="subscriptions">
-  <h1>Subscription Demo</h1>
   {#if $connected}
+    <h2>Subscription Demo</h2>
     <div class="row">
       <div class="column column-25">
         <ol use:links>
@@ -48,13 +50,22 @@
           <div class="merchant-account">
             <h3>Merchant Account</h3>
             <p>
-              Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor
-              incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud
-              exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure
-              dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur.
-              Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt
-              mollit anim id est laborum.
+              This demo showcases the process of setting up subscription packages as a merchant, as
+              well as a simulation of how a customer could pay for a subscription in order to access
+              premium content.
             </p>
+            <p>
+              The process of setting this up starts with registering a merchant account with the
+              SolPayments program. During this merchant registration you specify the subscription
+              packages and their price. Like so:
+            </p>
+            {#if !$subscriptionMerchant}
+              <div class="row">
+                <div class="column">
+                  <PackagesForm />
+                </div>
+              </div>
+            {/if}
             <div class="row">
               <div class="column">
                 {#if $subscriptionMerchant}
@@ -90,7 +101,7 @@
                       </tr>
                     </tbody>
                   </table>
-                {:else}
+                {:else if $subscriptionPackages.length > 0}
                   <MerchantComponent {addressStore} seed={subscriptionName} data={packages} />
                 {/if}
               </div>
