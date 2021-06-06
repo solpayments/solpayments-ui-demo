@@ -17,7 +17,7 @@
   import { subscribe } from '../instructions/subscribe';
   import { DEFAULT_DECIMALS, FINALIZED, PROCESSED, PROGRAM_OWNER } from '../helpers/constants';
   import { getClockAccount, getSubscriptionByAddress } from '../helpers/api';
-  import { forHumans } from '../helpers/utils';
+  import { forHumans, onInterval } from '../helpers/utils';
   import type { Package } from '../helpers/data';
   import type { Merchant } from '../helpers/layout';
   import TrasactionResult from './TrasactionResult.svelte';
@@ -191,17 +191,6 @@
     });
   };
 
-  const continuousClockReload = async () => {
-    loadClock();
-    await new Promise((r) => setTimeout(r, clockTimeout));
-    continuousClockReload();
-  };
-
-  onMount(async () => {
-    continuousClockReload();
-    getSubscriptionOrBust();
-  });
-
   $: processing = (subscriptionProcessing || subscriptionPromise != null) && !hasError;
   $: disabled = processing || (!$token && !buyerToken);
 
@@ -216,6 +205,13 @@
       ? 'active'
       : 'expired'
     : '';
+
+  onInterval(() => loadClock(), clockTimeout);
+
+  onMount(async () => {
+    loadClock();
+    getSubscriptionOrBust();
+  });
 
   onDestroy(unsubscribe);
 </script>
