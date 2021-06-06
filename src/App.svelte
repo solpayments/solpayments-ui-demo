@@ -1,19 +1,29 @@
 <script lang="ts">
+  import { SvelteToast } from '@zerodevx/svelte-toast';
+  import { PublicKey } from '@solana/web3.js';
   import { derived } from 'svelte/store';
   import { onMount } from 'svelte';
+  import { links, Route, Router } from 'svelte-routing';
+  import { RPC_API_URL } from './helpers/config';
   import { connected, solanaNetwork, userTokens } from './stores';
   import { getTokenRegistry } from './stores/tokenRegistry';
-  import Wallet from './components/Wallet.svelte';
-  import MerchantComponent from './components/Merchant.svelte';
-  import ExpressCheckout from './components/Checkout.svelte';
+  import Button from './components/Wallet/Button.svelte';
+  import Wallet from './components/Wallet/Wallet.svelte';
   import Tokens from './components/Tokens.svelte';
-  import Orders from './components/Orders.svelte';
+  import SubscriptionDemo from './demos/Subscription.svelte';
+  import ShopDemo from './demos/Shop.svelte';
+  import ShopCheckout from './demos/partial/ShopCheckout.svelte';
+  import ShopOrders from './demos/partial/ShopOrders.svelte';
+  import SubscribeDemo from './demos/partial/SubscribeDemo.svelte';
+  import SubscriptionOrders from './demos/partial/SubscriptionOrders.svelte';
+  import Home from './demos/Home.svelte';
+  import './styles/normalize.css';
+  import './styles/milligram.css';
+  import './styles/solpayments.css';
 
-  export let name: string;
-  export let orderId: string;
-  export let secret: string;
-  export let amount: number;
   export let mintAddress: string;
+  export let url = '';
+  const mintKey = mintAddress ? new PublicKey(mintAddress) : undefined;
 
   const selectedToken = derived(userTokens, ($userTokens) => {
     const possible = $userTokens.filter(
@@ -22,59 +32,88 @@
     if (possible.length > 0) {
       return possible[0];
     }
-    return null;
+    return undefined;
   });
 
-  solanaNetwork.update(() => 'http://localhost:8899');
+  const subscriptionName = 'demo';
+
+  const toastOptions = { reversed: true, intro: { y: 192 } };
+
+  solanaNetwork.update(() => RPC_API_URL);
   onMount(async () => getTokenRegistry());
 </script>
 
-<main>
-  <h1>Hello {name}!</h1>
-  <p>
-    Visit the <a href="https://svelte.dev/tutorial">Svelte tutorial</a> to learn how to build Svelte
-    apps.
-  </p>
+<Router {url}>
+  <SvelteToast options={toastOptions} />
+  <header class="header">
+    <div class="container">
+      <div class="row">
+        <div class="column" use:links>
+          <Router>
+            <a href="/" class="logo"><img src="/logo.jpg" alt="SolPayments" /></a>
+            <input class="menu-btn" type="checkbox" id="menu-btn" />
+            <label class="menu-icon" for="menu-btn"><span class="navicon" /></label>
+            <ul class="menu">
+              <li><a href="/shop">Shop</a></li>
+              <li><a href="/subscriptions">Subscription</a></li>
+              <Button />
+            </ul>
+          </Router>
+        </div>
+      </div>
+    </div>
+  </header>
+  <div class="container">
+    <div class="row">
+      <div class="column">
+        <div id="solpayments">
+          <Route path="/"><Home /></Route>
 
-  <Wallet />
+          {#if $connected}
+            <Tokens showButton={false} showTokens={false} showInfo={false} />
+          {/if}
 
-  {#if $connected}
-    <MerchantComponent />
-
-    <Tokens />
-
-    {#if $selectedToken}
-      <ExpressCheckout {orderId} {secret} {amount} buyerToken={$selectedToken} />
-    {:else}
-      <p style="color: red">Token account not found.</p>
-    {/if}
-
-    <hr />
-
-    <Orders />
-  {:else}
-    <p style="color: red">Not connected</p>
-  {/if}
-</main>
+          {#if mintKey}
+            <Route path="/shop">
+              <ShopDemo />
+            </Route>
+            <Route path="/shop/customer">
+              <ShopDemo><ShopCheckout mint={mintKey} tokenAccount={$selectedToken} /></ShopDemo>
+            </Route>
+            <Route path="/shop/orders"><ShopDemo><ShopOrders /></ShopDemo></Route>
+            <Route path="/subscriptions">
+              <SubscriptionDemo {subscriptionName} />
+            </Route>
+            <Route path="/subscriptions/customer">
+              <SubscriptionDemo {subscriptionName}>
+                <SubscribeDemo mint={mintKey} tokenAccount={$selectedToken} />
+              </SubscriptionDemo>
+            </Route>
+            <Route path="/subscriptions/orders">
+              <SubscriptionDemo {subscriptionName}>
+                <SubscriptionOrders />
+              </SubscriptionDemo>
+            </Route>
+          {:else}
+            <Route path="/shop/*"><Wallet /></Route>
+            <Route path="/subscriptions/*"><Wallet /></Route>
+          {/if}
+        </div>
+      </div>
+    </div>
+  </div>
+</Router>
 
 <style>
-  main {
-    text-align: center;
-    padding: 1em;
-    max-width: 240px;
-    margin: 0 auto;
+  .logo img {
+    max-width: 20rem;
   }
-
-  h1 {
-    color: #ff3e00;
-    text-transform: uppercase;
-    font-size: 4em;
-    font-weight: 100;
-  }
-
-  @media (min-width: 640px) {
-    main {
-      max-width: none;
-    }
+  :root {
+    --toastContainerTop: auto;
+    --toastBackground: #1e3574;
+    --toastContainerBottom: 3rem;
+    --toastBorderRadius: 1rem;
+    --toastMsgPadding: 1.1rem 1.5rem;
+    --toastWidth: auto;
   }
 </style>

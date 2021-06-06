@@ -1,12 +1,29 @@
 import type { Schema } from 'borsh';
 import { Layout } from './borsh';
 import type { Dictionary } from './types';
-import { AMOUNT, ENUM, INSTRUCTION, ORDER_ID, SECRET, STRING, STRUCT, U64 } from './constants';
+import {
+  AMOUNT,
+  DATA,
+  ENUM,
+  FEE,
+  INSTRUCTION,
+  NAME,
+  OPTION,
+  ORDER_ID,
+  QUANTITY,
+  SECRET,
+  SEED,
+  STRING,
+  STRUCT,
+  U64,
+} from './constants';
 
 export enum InstructionType {
   RegisterMerchant = 'RegisterMerchant',
   ExpressCheckout = 'ExpressCheckout',
   Withdraw = 'Withdraw',
+  Subscribe = 'Subscribe',
+  RenewSubscription = 'RenewSubscription',
 }
 
 export class Instruction extends Layout {
@@ -27,6 +44,8 @@ export class Instruction extends Layout {
             [InstructionType.RegisterMerchant, [len]],
             [InstructionType.ExpressCheckout, [len]],
             [InstructionType.Withdraw, [len]],
+            [InstructionType.Subscribe, [len]],
+            [InstructionType.RenewSubscription, [len]],
           ],
         },
       ],
@@ -43,7 +62,11 @@ export class InstructionData extends Layout {
         InstructionData,
         {
           kind: STRUCT,
-          fields: [],
+          fields: [
+            [SEED, { kind: OPTION, type: STRING }],
+            [FEE, { kind: OPTION, type: U64 }],
+            [DATA, { kind: OPTION, type: STRING }],
+          ],
         },
       ],
     ]),
@@ -56,6 +79,7 @@ export class InstructionData extends Layout {
             [AMOUNT, U64],
             [ORDER_ID, STRING],
             [SECRET, STRING],
+            [DATA, { kind: OPTION, type: STRING }],
           ],
         },
       ],
@@ -66,6 +90,27 @@ export class InstructionData extends Layout {
         {
           kind: STRUCT,
           fields: [],
+        },
+      ],
+    ]),
+    [InstructionType.Subscribe]: new Map([
+      [
+        InstructionData,
+        {
+          kind: STRUCT,
+          fields: [
+            [NAME, STRING],
+            [DATA, { kind: OPTION, type: STRING }],
+          ],
+        },
+      ],
+    ]),
+    [InstructionType.RenewSubscription]: new Map([
+      [
+        InstructionData,
+        {
+          kind: STRUCT,
+          fields: [[QUANTITY, U64]],
         },
       ],
     ]),

@@ -1,6 +1,6 @@
 <script lang="ts">
-  import { adapter, connected } from '../stores';
-  import { connectToWallet } from '../helpers/wallet';
+  import { adapter, connected } from '../../stores';
+  import { connectToWallet } from '../../helpers/wallet';
 
   let promise: Promise<void> | null;
   const handleConnect = () => {

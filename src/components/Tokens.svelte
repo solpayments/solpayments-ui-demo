@@ -4,17 +4,21 @@
   import { adapter, connected, userTokens, solanaNetwork, updateUserTokens } from '../stores';
   import { tokenMap } from '../stores/tokenRegistry';
   import { fetchTokenAccounts } from '../helpers/api';
-  import { SINGLE_GOSSIP } from '../helpers/constants';
+  import { PROCESSED } from '../helpers/constants';
   import { TOKEN_PROGRAM_ID } from '../helpers/solana';
+  import { onInterval } from '../helpers/utils';
   import type { TokenFromApi } from '../helpers/solana';
 
+  export let showButton = true;
+  export let showTokens = true;
+  export let showInfo = true;
+  export let tokenTimeout = 1000 * 15;
   let tokensPromise: Promise<void | TokenFromApi[]> | null = null;
-  export let tokenTimeout = 5000;
 
   const loadTokens = () => {
     if ($adapter && $adapter.publicKey) {
       tokensPromise = fetchTokenAccounts({
-        connection: new Connection($solanaNetwork, SINGLE_GOSSIP),
+        connection: new Connection($solanaNetwork, PROCESSED),
         ownerKey: $adapter.publicKey,
         programId: TOKEN_PROGRAM_ID,
       }).then((result) => {
@@ -28,32 +32,28 @@
     }
   };
 
-  const continousTokenReload = async () => {
-    loadTokens();
-    await new Promise((r) => setTimeout(r, tokenTimeout));
-    continousTokenReload();
-  };
+  onInterval(() => loadTokens(), tokenTimeout);
 
   onMount(async () => {
-    continousTokenReload();
+    loadTokens();
   });
 </script>
 
 <main>
   {#if $connected}
-    <button on:click={() => loadTokens()}> Refresh Tokens </button>
+    {#if showButton}
+      <button on:click={() => loadTokens()}> Refresh Tokens </button>
+    {/if}
 
     {#if tokensPromise}
       {#await tokensPromise}
-        <p>loading tokens</p>
+        {#if showInfo}<p>loading tokens</p>{/if}
       {:catch error}
-        <p style="color: red">{error}</p>
+        {#if showInfo}<p style="color: red">{error}</p>{/if}
       {/await}
-    {:else}
-      <p>not refreshing tokens</p>
-    {/if}
+    {:else if showInfo}<p>not refreshing tokens</p>{/if}
 
-    {#if $userTokens}
+    {#if $userTokens && showTokens}
       {#each $userTokens as userToken}
         <p>
           {userToken.name} ||&nbsp;

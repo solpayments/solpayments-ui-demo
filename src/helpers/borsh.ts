@@ -13,7 +13,7 @@ export abstract class Layout {
     return Buffer.from(serialize(this.schema, this));
   }
 
-  static assign(ob: any, properties: any) {
+  static assign(ob: any, properties: any): void {
     Object.keys(properties).map((key: any) => {
       ob[key] = properties[key];
     });
