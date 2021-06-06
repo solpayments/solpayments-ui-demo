@@ -11,6 +11,8 @@ export const getUiAmount = (amount: number, decimals: number): number => {
  *
  * @param  {number} seconds The number of seconds to be processed
  * @return {string}         The phrase describing the the amount of time
+ *
+ * Courtesy of https://stackoverflow.com/a/34270811
  */
 export const forHumans = (seconds: number): string => {
   const secInYear = 31536000;
