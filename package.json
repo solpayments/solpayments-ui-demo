@@ -65,6 +65,7 @@
     "@zerodevx/svelte-toast": "^0.3.0",
     "borsh": "^0.3.1",
     "buffer-layout": "^1.2.0",
+    "js-xxhash": "^1.0.4",
     "milligram": "^1.4.1",
     "svelte-routing": "^1.6.0"
   }
