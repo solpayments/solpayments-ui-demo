@@ -9,6 +9,7 @@
   import { expressCheckout } from '../instructions/express_checkout';
   import { DEFAULT_DECIMALS, FINALIZED, PROGRAM_OWNER } from '../helpers/constants';
   import type { Merchant } from '../helpers/layout';
+  import { hash } from '../helpers/utils';
   import TrasactionResult from './TrasactionResult.svelte';
 
   export let secret: string;
@@ -61,7 +62,7 @@
             connection: new Connection($solanaNetwork, FINALIZED),
             merchantAccount: merchant.address,
             mint,
-            orderId,
+            orderId: hash(`${merchant.address}`),
             programOwnerAccount: new PublicKey(PROGRAM_OWNER),
             secret,
             sponsorAccount: merchant.account.sponsor,
