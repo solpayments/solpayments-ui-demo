@@ -1,4 +1,4 @@
-import { xxHash32 } from 'js-xxhash';
+import murmur32 from 'murmur-32';
 import { onDestroy } from 'svelte';
 
 export const abbreviateAddress = (address: string): string => {
@@ -51,8 +51,15 @@ export const onInterval = (callback: () => void, milliseconds: number): void => 
   });
 };
 
-export const hash = (input: string, seed?: number): string => {
-  return xxHash32(input).toString(seed);
+/**
+ * Compute a hash for the given input
+ *
+ * @param key - the input that you want to hash
+ * @returns the hash of the string
+ */
+export const hash = (key: string): string => {
+  // Currently Computes the 32-bit MurmurHash3 of the supplied key
+  return new Uint32Array(murmur32(key)).toString();
 };
 
 export const sleep = (t: number): Promise<unknown> =>
