@@ -1,3 +1,4 @@
+import { xxHash32 } from 'js-xxhash';
 import { onDestroy } from 'svelte';
 
 export const abbreviateAddress = (address: string): string => {
@@ -48,6 +49,10 @@ export const onInterval = (callback: () => void, milliseconds: number): void => 
   onDestroy(() => {
     clearInterval(interval);
   });
+};
+
+export const hash = (input: string, seed?: number): string => {
+  return xxHash32(input).toString(seed);
 };
 
 export const sleep = (t: number): Promise<unknown> =>
