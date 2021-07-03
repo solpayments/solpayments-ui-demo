@@ -1,10 +1,10 @@
 import { Buffer } from 'buffer';
-import type { Account, Connection } from '@solana/web3.js';
+import type { Connection } from '@solana/web3.js';
 import {
+  Account,
   PublicKey,
   Transaction,
   TransactionInstruction,
-  SYSVAR_CLOCK_PUBKEY,
   SYSVAR_RENT_PUBKEY,
   SystemProgram,
 } from '@solana/web3.js';
@@ -12,7 +12,7 @@ import { Result, success } from '../helpers/result';
 import { failure } from '../helpers/result';
 import { TOKEN_PROGRAM_ID } from '../helpers/solana';
 import { Instruction, InstructionData, InstructionType } from '../helpers/instruction';
-import { MAX_SEED_LEN, PDA_SEED } from '../helpers/constants';
+import { PDA_SEED } from '../helpers/constants';
 import type { WalletAdapter } from '../helpers/types';
 import { WRAPPED_SOL_MINT } from '../helpers/solana';
 import { getOrCreateTokenAccount, getOrCreateSOLTokenAccount } from '../helpers/token';
@@ -23,6 +23,7 @@ interface ExpressCheckoutTxParams {
   data?: string;
   merchantAccount: PublicKey;
   mint: PublicKey /** the mint in use; represents the currency */;
+  orderAccount: Account /** the account used to store the order details */;
   orderId: string /** the unique order id */;
   programId: PublicKey;
   programOwnerAccount: PublicKey;
@@ -31,13 +32,13 @@ interface ExpressCheckoutTxParams {
   signer: PublicKey;
 }
 
-export const getOrderAccountPubkey = async (
-  orderId: string,
-  wallet_pk: PublicKey,
-  programIdKey: PublicKey
-): Promise<PublicKey> => {
-  return PublicKey.createWithSeed(wallet_pk, orderId.slice(0, MAX_SEED_LEN), programIdKey);
-};
+// export const getOrderAccountPubkey = async (
+//   orderId: string,
+//   wallet_pk: PublicKey,
+//   programIdKey: PublicKey
+// ): Promise<PublicKey> => {
+//   return PublicKey.createWithSeed(wallet_pk, orderId.slice(0, MAX_SEED_LEN), programIdKey);
+// };
 
 export const getSellerTokenAccountPubkey = async (
   orderAccount: PublicKey,
@@ -60,6 +61,7 @@ export const makeExpressCheckoutTransaction = async (
     mint,
     programOwnerAccount,
     orderId,
+    orderAccount,
     programId,
     secret,
     sponsorAccount,
@@ -67,10 +69,9 @@ export const makeExpressCheckoutTransaction = async (
   } = params;
 
   const data = params.data || null;
-  const orderAccount = await getOrderAccountPubkey(orderId, signer, programId);
   const promiseResults = await Promise.all([
     PublicKey.findProgramAddress([Buffer.from(PDA_SEED)], programId),
-    getSellerTokenAccountPubkey(orderAccount, mint, programId),
+    getSellerTokenAccountPubkey(orderAccount.publicKey, mint, programId),
   ]);
   const pda = promiseResults[0];
   const sellerTokenAccount = promiseResults[1];
@@ -79,7 +80,7 @@ export const makeExpressCheckoutTransaction = async (
     programId,
     keys: [
       { pubkey: signer, isSigner: true, isWritable: true },
-      { pubkey: orderAccount, isSigner: false, isWritable: true },
+      { pubkey: orderAccount.publicKey, isSigner: true, isWritable: true },
       { pubkey: merchantAccount, isSigner: false, isWritable: false },
       { pubkey: sellerTokenAccount[0], isSigner: false, isWritable: true },
       { pubkey: buyerTokenAccount, isSigner: false, isWritable: true },
@@ -89,7 +90,6 @@ export const makeExpressCheckoutTransaction = async (
       { pubkey: pda[0], isSigner: false, isWritable: false },
       { pubkey: TOKEN_PROGRAM_ID, isSigner: false, isWritable: false },
       { pubkey: SystemProgram.programId, isSigner: false, isWritable: false },
-      { pubkey: SYSVAR_CLOCK_PUBKEY, isSigner: false, isWritable: false },
       { pubkey: SYSVAR_RENT_PUBKEY, isSigner: false, isWritable: false },
     ],
     data: new Instruction({
@@ -151,11 +151,12 @@ export const makeCheckoutTransaction = async (
   }
 
   const programIdKey = new PublicKey(thisProgramId);
+  const orderAccount = new Account();
   const transaction = new Transaction({ feePayer: wallet.publicKey });
   let tokenAccount: PublicKey | undefined = buyerTokenAccount;
   let beforeIxs: TransactionInstruction[] = [];
   let afterIxs: TransactionInstruction[] = [];
-  let signers: Account[] = [];
+  let signers: Account[] = [orderAccount];
 
   if (!tokenAccount) {
     let getAccResult;
@@ -197,6 +198,7 @@ export const makeCheckoutTransaction = async (
           merchantAccount,
           mint,
           orderId,
+          orderAccount,
           programId: programIdKey,
           programOwnerAccount,
           secret,
