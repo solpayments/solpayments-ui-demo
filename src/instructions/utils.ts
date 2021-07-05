@@ -32,14 +32,6 @@ interface ExpressCheckoutTxParams {
   signer: PublicKey;
 }
 
-// export const getOrderAccountPubkey = async (
-//   orderId: string,
-//   wallet_pk: PublicKey,
-//   programIdKey: PublicKey
-// ): Promise<PublicKey> => {
-//   return PublicKey.createWithSeed(wallet_pk, orderId.slice(0, MAX_SEED_LEN), programIdKey);
-// };
-
 export const getSellerTokenAccountPubkey = async (
   orderAccount: PublicKey,
   mint: PublicKey,
@@ -178,7 +170,7 @@ export const makeCheckoutTransaction = async (
       tokenAccount = getAccResult.value.address;
       beforeIxs = getAccResult.value.instructions;
       afterIxs = getAccResult.value.cleanupInstructions;
-      signers = getAccResult.value.signers;
+      signers = signers.concat(getAccResult.value.signers);
     }
   }
 
