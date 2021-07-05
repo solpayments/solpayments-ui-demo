@@ -4,7 +4,6 @@ export const STRUCT = 'struct';
 export const FINALIZED = 'finalized';
 export const CONFIRMED = 'confirmed';
 export const PROCESSED = 'processed';
-export const MAX_SEED_LEN = 32;
 export const AMOUNT = 'amount';
 export const U64 = 'u64';
 export const ORDER_ID = 'order_id';
