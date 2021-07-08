@@ -13,7 +13,7 @@ interface GetOrCreateSOLTokenAccountParams {
   wallet: WalletAdapter;
 }
 
-interface GetOrCreateTokenAccountResult {
+interface CustomInstructionResult {
   address: PublicKey;
   instructions: TransactionInstruction[];
   cleanupInstructions: TransactionInstruction[];
@@ -25,7 +25,7 @@ interface GetOrCreateTokenAccountResult {
  */
 export const getOrCreateSOLTokenAccount = async (
   params: GetOrCreateSOLTokenAccountParams
-): Promise<Result<GetOrCreateTokenAccountResult>> => {
+): Promise<Result<CustomInstructionResult>> => {
   const { amount, connection, wallet } = params;
 
   if (!wallet.publicKey) {
@@ -122,7 +122,7 @@ interface GetOrCreateTokenAccountParams {
  */
 export const getOrCreateTokenAccount = async (
   params: GetOrCreateTokenAccountParams
-): Promise<Result<GetOrCreateTokenAccountResult>> => {
+): Promise<Result<CustomInstructionResult>> => {
   const { connection, mint, wallet } = params;
 
   if (mint.toBase58() === WRAPPED_SOL_MINT.toBase58()) {
@@ -160,5 +160,44 @@ export const getOrCreateTokenAccount = async (
     instructions,
     cleanupInstructions: [],
     signers: [],
+  });
+};
+
+interface CreateAccountParams {
+  accountOwner: PublicKey;
+  connection: Connection;
+  wallet: WalletAdapter;
+}
+
+/**
+ * Create a system account
+ */
+export const createAccount = async (
+  params: CreateAccountParams
+): Promise<Result<CustomInstructionResult>> => {
+  const { accountOwner, connection, wallet } = params;
+  if (!wallet.publicKey) {
+    return failure(new Error('Wallet not connected'));
+  }
+  const instructions: TransactionInstruction[] = [];
+  const cleanupInstructions: TransactionInstruction[] = [];
+  const newAccount = new Account();
+  // create the account
+  instructions.push(
+    SystemProgram.createAccount({
+      fromPubkey: wallet.publicKey,
+      newAccountPubkey: newAccount.publicKey,
+      lamports: await connection.getMinimumBalanceForRentExemption(
+        AccountLayout.span
+      ),
+      space: AccountLayout.span,
+      programId: accountOwner,
+    })
+  );
+  return success({
+    address: newAccount.publicKey,
+    instructions,
+    cleanupInstructions,
+    signers: [newAccount],
   });
 };
