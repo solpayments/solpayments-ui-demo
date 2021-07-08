@@ -111,7 +111,7 @@
     while (
       !$subscription ||
       force ||
-      ($clock && $clock.unixTimestamp > $subscription.account.period_end)
+      ($clock && $clock.unixTimestamp > $subscription.account.periodEnd)
     ) {
       fetchSubscription($adapter);
       // sleep
@@ -201,7 +201,7 @@
   };
 
   $: subscriptionCssClass = $subscription
-    ? $clock && $subscription.account.period_end > $clock.unixTimestamp
+    ? $clock && $subscription.account.periodEnd > $clock.unixTimestamp
       ? 'active'
       : 'expired'
     : '';
@@ -235,18 +235,18 @@
             </tr>
             <tr>
               <th> Current Period Start </th>
-              <td>{new Date($subscription.account.period_start * 1000).toLocaleString()}</td>
+              <td>{new Date($subscription.account.periodStart * 1000).toLocaleString()}</td>
             </tr>
             <tr>
-              {#if $clock && $subscription.account.period_end > $clock.unixTimestamp}
+              {#if $clock && $subscription.account.periodEnd > $clock.unixTimestamp}
                 <th style="color: green"> Active Until </th>
               {:else}
                 <th style="color: red"> Ended On </th>
               {/if}
               <td>
-                {new Date($subscription.account.period_end * 1000).toLocaleString()}
+                {new Date($subscription.account.periodEnd * 1000).toLocaleString()}
                 <br /><span class="tx-sm">
-                  The {#if $clock && $subscription.account.period_end > $clock.unixTimestamp}current{:else}last{/if}
+                  The {#if $clock && $subscription.account.periodEnd > $clock.unixTimestamp}current{:else}last{/if}
                   period end date
                 </span>
               </td>
