@@ -97,7 +97,7 @@ export class InstructionData extends Layout {
           kind: STRUCT,
           fields: [
             [AMOUNT, U64],
-            ["order_items", STRING],
+            ['order_items', STRING],
             [DATA, { kind: OPTION, type: STRING }],
           ],
         },
@@ -108,9 +108,7 @@ export class InstructionData extends Layout {
         InstructionData,
         {
           kind: STRUCT,
-          fields: [
-            [CLOSE_ORDER_ACCOUNT, U8],
-          ],
+          fields: [[CLOSE_ORDER_ACCOUNT, U8]],
         },
       ],
     ]),

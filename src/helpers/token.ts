@@ -189,9 +189,7 @@ export const createAccount = async (
     SystemProgram.createAccount({
       fromPubkey: wallet.publicKey,
       newAccountPubkey: newAccount.publicKey,
-      lamports: await connection.getMinimumBalanceForRentExemption(
-        AccountLayout.span
-      ),
+      lamports: await connection.getMinimumBalanceForRentExemption(AccountLayout.span),
       space: AccountLayout.span,
       programId: accountOwner,
     })

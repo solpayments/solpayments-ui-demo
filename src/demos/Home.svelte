@@ -26,8 +26,9 @@
         Solana's <strong>devnet</strong> network.
       </p>
       <p>You are going to need some SOL in your devnet wallet to go through the demo.</p>
-      <a href="https://solfaucet.com/" target="_blank" class="button button-outline">Get some SOL</a>
-      <hr/>
+      <a href="https://solfaucet.com/" target="_blank" class="button button-outline">Get some SOL</a
+      >
+      <hr />
     </div>
   </div>
   <div class="row" use:links>
