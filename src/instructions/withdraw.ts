@@ -5,7 +5,6 @@ import {
   PublicKey,
   Transaction,
   TransactionInstruction,
-  SYSVAR_CLOCK_PUBKEY,
 } from '@solana/web3.js';
 import { PDA_SEED } from '../helpers/constants';
 import { TOKEN_PROGRAM_ID, WRAPPED_SOL_MINT } from '../helpers/solana';
@@ -20,6 +19,8 @@ import {
 import { Instruction, InstructionData, InstructionType } from '../helpers/instruction';
 
 interface WithdrawParams {
+  accountToReceiveSolRefund: PublicKey;
+  closeOrderAccount: 0 | 1;
   connection: Connection;
   merchantAccount: PublicKey;
   merchantTokenAccount?: PublicKey;
@@ -32,6 +33,8 @@ interface WithdrawParams {
 
 export const withdraw = async (params: WithdrawParams): Promise<Result<TransactionSignature>> => {
   const {
+    accountToReceiveSolRefund,
+    closeOrderAccount,
     connection,
     merchantAccount,
     merchantTokenAccount,
@@ -95,14 +98,16 @@ export const withdraw = async (params: WithdrawParams): Promise<Result<Transacti
             { pubkey: merchantAccount, isSigner: false, isWritable: false },
             { pubkey: orderTokenAccount, isSigner: false, isWritable: true },
             { pubkey: tokenAccount, isSigner: false, isWritable: true },
+            { pubkey: accountToReceiveSolRefund, isSigner: false, isWritable: true },
             { pubkey: pda[0], isSigner: false, isWritable: false },
             { pubkey: TOKEN_PROGRAM_ID, isSigner: false, isWritable: false },
-            { pubkey: SYSVAR_CLOCK_PUBKEY, isSigner: false, isWritable: false },
           ],
           data: new Instruction({
             instruction: InstructionType.Withdraw,
             [InstructionType.Withdraw]: new Uint8Array(
-              new InstructionData(InstructionType.Withdraw, {}).encode()
+              new InstructionData(InstructionType.Withdraw, {
+                close_order_account: closeOrderAccount,
+              }).encode()
             ),
           }).encode(),
         })
