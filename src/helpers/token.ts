@@ -63,13 +63,15 @@ export const getOrCreateSOLTokenAccount = async (
       })
     );
     // Send lamports to it (these will be wrapped into native tokens by the token program)
-    instructions.push(
-      SystemProgram.transfer({
-        fromPubkey: wallet.publicKey,
-        toPubkey: newAccount.publicKey,
-        lamports: amount,
-      })
-    );
+    if (amount > 0) {
+      instructions.push(
+        SystemProgram.transfer({
+          fromPubkey: wallet.publicKey,
+          toPubkey: newAccount.publicKey,
+          lamports: amount,
+        })
+      );
+    }
     // Assign the new account to the native token mint.
     // the account will be initialized with a balance equal to the native token balance.
     // (i.e. amount)
