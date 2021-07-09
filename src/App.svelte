@@ -86,7 +86,7 @@
             </Route>
             <Route path="/subscriptions/customer">
               <SubscriptionDemo {subscriptionName}>
-                <SubscribeDemo mint={mintKey} tokenAccount={$selectedToken} />
+                <SubscribeDemo tokenAccount={$selectedToken} />
               </SubscriptionDemo>
             </Route>
             <Route path="/subscriptions/orders">
