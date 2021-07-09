@@ -36,11 +36,10 @@ export const subscribe = async (params: SubscribeParams): Promise<Result<Transac
   if (subscriptionAddress) {
     subscriptionKey = subscriptionAddress;
   } else {
-    const subscriptionPda = await PublicKey.findProgramAddress([
-      wallet.publicKey.toBuffer(),
-      merchantAccount.toBuffer(),
-      Buffer.from(name)
-    ], programIdKey);
+    const subscriptionPda = await PublicKey.findProgramAddress(
+      [wallet.publicKey.toBuffer(), merchantAccount.toBuffer(), Buffer.from(name)],
+      programIdKey
+    );
     subscriptionKey = subscriptionPda[0];
   }
 

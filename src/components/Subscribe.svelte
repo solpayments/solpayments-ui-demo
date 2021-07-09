@@ -74,8 +74,7 @@
       PublicKey.findProgramAddress(
         [connectedWallet.publicKey.toBuffer(), merchant.address.toBuffer(), Buffer.from(name)],
         new PublicKey($globalProgramId)
-      )
-      .then((pda) => {
+      ).then((pda) => {
         // update local address state
         subscriptionAddress = pda[0];
         getSubscriptionByAddress({
