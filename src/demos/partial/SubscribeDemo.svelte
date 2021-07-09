@@ -1,6 +1,4 @@
 <script lang="ts">
-  import type { PublicKey } from '@solana/web3.js';
-  import { getContext } from 'svelte';
   import { derived } from 'svelte/store';
   import { connected } from '../../stores';
   import type { UserToken } from '../../stores';
@@ -12,10 +10,7 @@
   import { subscriptionAddressStore as addressStore } from '../demo';
 
   export let tokenAccount: UserToken | undefined = undefined;
-  export let mint: PublicKey;
   let packages: Packages | undefined = undefined;
-
-  const subscriptionName = getContext<string>('subscriptionName');
 
   const subscriptionMerchant = derived(merchantRegistry, ($merchantRegistry) => {
     if (addressStore && $addressStore) {
@@ -31,7 +26,7 @@
 
 <main class="subscription-checkout">
   {#if $connected}
-    {#if $subscriptionMerchant && packages && subscriptionName}
+    {#if $subscriptionMerchant && packages}
       <div class="row">
         <div class="column">
           <h3>Subscriptions</h3>
@@ -50,8 +45,6 @@
           <div class="column">
             <Subscribe
               merchant={$subscriptionMerchant}
-              {mint}
-              {subscriptionName}
               {subscriptionPackage}
               buyerToken={tokenAccount}
             />
