@@ -103,6 +103,7 @@ export interface BaseCheckoutParams {
   buyerTokenAccount?: PublicKey /** the token account used to pay for this order */;
   connection: Connection;
   data?: string;
+  inputOrderAccount?: Account;
   merchantAccount: PublicKey;
   mint: PublicKey /** the mint in use; represents the currency */;
   programOwnerAccount: PublicKey;
@@ -129,6 +130,7 @@ export const makeCheckoutTransaction = async (
     buyerTokenAccount,
     connection,
     data,
+    inputOrderAccount,
     merchantAccount,
     mint,
     programOwnerAccount,
@@ -143,7 +145,7 @@ export const makeCheckoutTransaction = async (
   }
 
   const programIdKey = new PublicKey(thisProgramId);
-  const orderAccount = new Account();
+  const orderAccount = inputOrderAccount || new Account();
   const transaction = new Transaction({ feePayer: wallet.publicKey });
   let tokenAccount: PublicKey | undefined = buyerTokenAccount;
   let beforeIxs: TransactionInstruction[] = [];
