@@ -54,7 +54,11 @@
         : null;
   };
 
-  $: processing = (withdrawProcessing || withdrawResultTxId != undefined) && !hasError;
+  $: transactionDone =
+    withdrawResultTxId != undefined &&
+    $transactionsMap.get(withdrawResultTxId)?.status == TxStatus.Success;
+  $: processing =
+    (withdrawProcessing || withdrawResultTxId != undefined) && !transactionDone && !hasError;
 
   /** ensure you can retry after an error */
   const onError = () => {
@@ -69,8 +73,14 @@
   {#if $connected && orderInfo}
     <div class="row">
       <div class="column">
-        <button on:click={() => handleWithdrawPromise()} disabled={processing}>
-          {#if processing}Processing{:else}Withdraw{/if}
+        <button on:click={() => handleWithdrawPromise()} disabled={processing || transactionDone}>
+          {#if processing}
+            Processing
+          {:else if transactionDone}
+            Withdrawal Successful
+          {:else}
+            Withdraw
+          {/if}
         </button>
       </div>
     </div>
