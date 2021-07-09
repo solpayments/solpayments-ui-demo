@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { Buffer } from 'buffer';
   import { onMount, onDestroy } from 'svelte';
   import { derived } from 'svelte/store';
   import { Connection, PublicKey } from '@solana/web3.js';
@@ -26,11 +27,9 @@
   export let clockTimeout = 1000 * 60;
   export let buyerToken: UserToken | undefined = undefined;
   export let merchant: Merchant;
-  export let subscriptionName: string;
   export let subscriptionPackage: Package;
-  export let mint: PublicKey;
 
-  const name = `${subscriptionName}:${subscriptionPackage.name}`;
+  const name = subscriptionPackage.name;
   let subscriptionPromise: Promise<void | string> | null = null;
   let subscriptionProcessing = false;
   let subscriptionResultTxId: string | undefined = undefined;
@@ -39,8 +38,8 @@
 
   const token = derived(tokenMap, ($tokenMap) => {
     if ($tokenMap) {
-      if (mint !== undefined) {
-        return $tokenMap.get(mint.toBase58()) || null;
+      if (subscriptionPackage.mint) {
+        return $tokenMap.get(subscriptionPackage.mint) || null;
       } else if (buyerToken) {
         return $tokenMap.get(buyerToken.pubkey.toBase58()) || null;
       }
@@ -72,16 +71,16 @@
 
   const fetchSubscription = (connectedWallet: Adapter) => {
     if (connectedWallet && connectedWallet.publicKey) {
-      PublicKey.createWithSeed(
-        connectedWallet.publicKey,
-        name,
+      PublicKey.findProgramAddress(
+        [connectedWallet.publicKey.toBuffer(), merchant.address.toBuffer(), Buffer.from(name)],
         new PublicKey($globalProgramId)
-      ).then((address) => {
+      )
+      .then((pda) => {
         // update local address state
-        subscriptionAddress = address;
+        subscriptionAddress = pda[0];
         getSubscriptionByAddress({
           connection: new Connection($solanaNetwork, PROCESSED),
-          publicKey: address,
+          publicKey: pda[0],
         }).then((result) => {
           // update the subscription store with the subscription object
           if (result.error) {
@@ -130,7 +129,7 @@
             buyerTokenAccount: buyerToken?.pubkey,
             connection: new Connection($solanaNetwork, FINALIZED),
             merchantAccount: merchant.address,
-            mint,
+            mint: new PublicKey(subscriptionPackage.mint),
             name,
             programOwnerAccount: new PublicKey(PROGRAM_OWNER),
             sponsorAccount: merchant.account.sponsor,
@@ -162,7 +161,7 @@
             buyerTokenAccount: buyerToken?.pubkey,
             connection: new Connection($solanaNetwork, FINALIZED),
             merchantAccount: merchant.address,
-            mint,
+            mint: new PublicKey(subscriptionPackage.mint),
             name,
             programOwnerAccount: new PublicKey(PROGRAM_OWNER),
             sponsorAccount: merchant.account.sponsor,
