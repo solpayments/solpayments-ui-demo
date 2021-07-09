@@ -1,11 +1,11 @@
 <script lang="ts">
   import { onDestroy } from 'svelte';
-  import { Connection } from '@solana/web3.js';
+  import { Connection, PublicKey } from '@solana/web3.js';
   import { transactionsMap, TxStatus } from '../stores/transaction';
   import { adapter, connected, programId as globalProgramId, solanaNetwork } from '../stores';
   import type { UserToken } from '../stores';
   import { withdraw } from '../instructions/withdraw';
-  import { FINALIZED } from '../helpers/constants';
+  import { FINALIZED, PROGRAM_OWNER } from '../helpers/constants';
   import type { OrderInfo } from '../helpers/layout';
   import TrasactionResult from './TrasactionResult.svelte';
 
@@ -30,6 +30,8 @@
     withdrawPromise =
       $adapter && $adapter.publicKey && orderInfo
         ? withdraw({
+            accountToReceiveSolRefund: new PublicKey(PROGRAM_OWNER),
+            closeOrderAccount: 0,
             connection: new Connection($solanaNetwork, FINALIZED),
             merchantAccount: orderInfo.account.data.merchant,
             merchantTokenAccount: merchantToken?.pubkey,
