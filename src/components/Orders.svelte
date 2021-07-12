@@ -52,7 +52,7 @@
       return new PublicKey(orderData.subscription);
     }
     return undefined;
-  }
+  };
 
   $: processing = ordersPromise !== null;
 
@@ -107,7 +107,10 @@
               >
               <td>
                 {#if orderAccount.account.data.status === OrderStatus.Paid}
-                  <Withdraw orderInfo={orderAccount} subscriptionAccount={getSubscriptionAccount(orderAccount)} />
+                  <Withdraw
+                    orderInfo={orderAccount}
+                    subscriptionAccount={getSubscriptionAccount(orderAccount)}
+                  />
                 {/if}
               </td>
             </tr>

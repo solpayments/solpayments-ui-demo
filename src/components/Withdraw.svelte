@@ -69,11 +69,11 @@
   };
 
   const prettyError = (error: Error) => {
-    if (error.message.includes("Error processing Instruction 2: custom program error: 0x1")) {
-      return "Cannot withdraw during trial period";
+    if (error.message.includes('Error processing Instruction 2: custom program error: 0x1')) {
+      return 'Cannot withdraw during trial period';
     }
     return error.message;
-  }
+  };
 
   onDestroy(unsubscribe);
 </script>
