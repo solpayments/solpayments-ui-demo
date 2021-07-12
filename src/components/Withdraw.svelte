@@ -11,6 +11,7 @@
 
   export let merchantToken: UserToken | undefined = undefined;
   export let orderInfo: OrderInfo;
+  export let subscriptionAccount: PublicKey | undefined = undefined;
   let withdrawPromise: Promise<void | string> | null = null;
   let withdrawProcessing = false;
   let withdrawResultTxId: string | undefined = undefined;
@@ -38,6 +39,7 @@
             mint: orderInfo.account.data.mint,
             orderAccount: orderInfo.pubkey,
             orderTokenAccount: orderInfo.account.data.token,
+            subscriptionAccount,
             thisProgramId: $globalProgramId,
             wallet: $adapter,
           })
@@ -66,6 +68,13 @@
     return null;
   };
 
+  const prettyError = (error: Error) => {
+    if (error.message.includes("Error processing Instruction 2: custom program error: 0x1")) {
+      return "Cannot withdraw during trial period";
+    }
+    return error.message;
+  }
+
   onDestroy(unsubscribe);
 </script>
 
@@ -93,7 +102,7 @@
       {:catch error}
         <!-- TODO: find better way to call this func, as this way is frowned upon in svelte-world-->
         {onError() || ''}
-        <p style="color: red">{error}</p>
+        <p style="color: red">{prettyError(error)}</p>
       {/await}
     {/if}
   {/if}
