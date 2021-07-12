@@ -26,7 +26,7 @@
     }
   });
 
-  const handleWithdrawPromise = () => {
+  const handleCancelPromise = () => {
     hasError = false;
     cancelSubscriptionProcessing = true;
     cancelSubscriptionResultTxId = undefined;
@@ -77,7 +77,7 @@
   {#if $connected && orderInfo}
     <div class="row">
       <div class="column">
-        <button on:click={() => handleWithdrawPromise()} disabled={processing || transactionDone}>
+        <button on:click={() => handleCancelPromise()} disabled={processing || transactionDone}>
           {#if processing}
             Processing
           {:else if transactionDone}
