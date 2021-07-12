@@ -11,13 +11,15 @@
   import { tokenMap } from '../stores/tokenRegistry';
   import { getOrderAccounts } from '../helpers/api';
   import { PROCESSED } from '../helpers/constants';
-  import { OrderStatus } from '../helpers/layout';
+  import type { OrderSubscription } from '../helpers/data';
+  import { Discriminator, OrderStatus } from '../helpers/layout';
+  import type { Merchant, OrderInfo } from '../helpers/layout';
   import { abbreviateAddress, onInterval, sleep } from '../helpers/utils';
   import Withdraw from './Withdraw.svelte';
 
   let ordersPromise: Promise<any> | null = null;
   export let ordersTimeout = 1000 * 30;
-  export let merchantAddress: PublicKey;
+  export let merchant: Merchant;
 
   const getTokenSymbol = (mint: PublicKey): string => {
     const result = $tokenMap.get(mint.toString());
@@ -25,10 +27,10 @@
   };
 
   const loadOrders = () => {
-    if ($adapter && $adapter.publicKey && merchantAddress) {
+    if ($adapter && $adapter.publicKey && merchant?.address) {
       ordersPromise = getOrderAccounts({
         connection: new Connection($solanaNetwork, PROCESSED),
-        merchantKey: merchantAddress,
+        merchantKey: merchant.address,
         programId: $globalProgramId,
         tokenRegistry: $tokenMap,
       }).then((result) => {
@@ -43,6 +45,14 @@
       });
     }
   };
+
+  const getSubscriptionAccount = (orderInfo: OrderInfo) => {
+    if (merchant.account.discriminator === Discriminator.MerchantSubscriptionWithTrial) {
+      const orderData: OrderSubscription = JSON.parse(orderInfo.account.data.data);
+      return new PublicKey(orderData.subscription);
+    }
+    return undefined;
+  }
 
   $: processing = ordersPromise !== null;
 
@@ -97,7 +107,7 @@
               >
               <td>
                 {#if orderAccount.account.data.status === OrderStatus.Paid}
-                  <Withdraw orderInfo={orderAccount} />
+                  <Withdraw orderInfo={orderAccount} subscriptionAccount={getSubscriptionAccount(orderAccount)} />
                 {/if}
               </td>
             </tr>
