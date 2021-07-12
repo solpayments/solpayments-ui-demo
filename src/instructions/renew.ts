@@ -1,5 +1,5 @@
 import type { TransactionSignature } from '@solana/web3.js';
-import { PublicKey, TransactionInstruction, SYSVAR_CLOCK_PUBKEY } from '@solana/web3.js';
+import { Account, PublicKey, TransactionInstruction } from '@solana/web3.js';
 import type { Result } from '../helpers/result';
 import { failure } from '../helpers/result';
 import {
@@ -30,11 +30,12 @@ export const renew_subscription = async (
     subscription: subscriptionAccount.toString(),
   };
   const orderId = `${name}:${new Date().valueOf()}`;
-  const orderKey = await PublicKey.createWithSeed(wallet.publicKey, orderId, programIdKey);
+  const orderAccount = new Account();
 
   const txResult = await makeCheckoutTransaction({
     ...params,
     data: JSON.stringify(orderData),
+    inputOrderAccount: orderAccount,
     orderId,
     secret: '',
   });
@@ -52,8 +53,7 @@ export const renew_subscription = async (
           { pubkey: wallet.publicKey, isSigner: true, isWritable: true },
           { pubkey: subscriptionAccount, isSigner: false, isWritable: true },
           { pubkey: merchantAccount, isSigner: false, isWritable: false },
-          { pubkey: orderKey, isSigner: false, isWritable: false },
-          { pubkey: SYSVAR_CLOCK_PUBKEY, isSigner: false, isWritable: false },
+          { pubkey: orderAccount.publicKey, isSigner: false, isWritable: false },
         ],
         data: new Instruction({
           instruction: InstructionType.RenewSubscription,
