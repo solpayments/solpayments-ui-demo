@@ -12,6 +12,7 @@ import {
   signAndSendTransaction,
 } from '../helpers/transaction';
 import { Instruction, InstructionData, InstructionType } from '../helpers/instruction';
+import type { TransactionKeys } from './utils';
 
 interface WithdrawParams {
   accountToReceiveSolRefund: PublicKey;
@@ -22,6 +23,7 @@ interface WithdrawParams {
   mint: PublicKey;
   orderAccount: PublicKey;
   orderTokenAccount: PublicKey;
+  subscriptionAccount?: PublicKey;
   thisProgramId: string;
   wallet: WalletAdapter;
 }
@@ -36,6 +38,7 @@ export const withdraw = async (params: WithdrawParams): Promise<Result<Transacti
     mint,
     orderAccount,
     orderTokenAccount,
+    subscriptionAccount,
     thisProgramId,
     wallet,
   } = params;
@@ -83,20 +86,26 @@ export const withdraw = async (params: WithdrawParams): Promise<Result<Transacti
 
   // add main instruction
   if (tokenAccount !== undefined) {
+    const keys: TransactionKeys[] = [
+      { pubkey: wallet.publicKey, isSigner: true, isWritable: true },
+      { pubkey: orderAccount, isSigner: false, isWritable: true },
+      { pubkey: merchantAccount, isSigner: false, isWritable: false },
+      { pubkey: orderTokenAccount, isSigner: false, isWritable: true },
+      { pubkey: tokenAccount, isSigner: false, isWritable: true },
+      { pubkey: accountToReceiveSolRefund, isSigner: false, isWritable: true },
+      { pubkey: pda[0], isSigner: false, isWritable: false },
+      { pubkey: TOKEN_PROGRAM_ID, isSigner: false, isWritable: false },
+    ];
+
+    if (subscriptionAccount) {
+      keys.push({ pubkey: subscriptionAccount, isSigner: false, isWritable: false });
+    }
+
     try {
       transaction.add(
         new TransactionInstruction({
           programId: programIdKey,
-          keys: [
-            { pubkey: wallet.publicKey, isSigner: true, isWritable: true },
-            { pubkey: orderAccount, isSigner: false, isWritable: true },
-            { pubkey: merchantAccount, isSigner: false, isWritable: false },
-            { pubkey: orderTokenAccount, isSigner: false, isWritable: true },
-            { pubkey: tokenAccount, isSigner: false, isWritable: true },
-            { pubkey: accountToReceiveSolRefund, isSigner: false, isWritable: true },
-            { pubkey: pda[0], isSigner: false, isWritable: false },
-            { pubkey: TOKEN_PROGRAM_ID, isSigner: false, isWritable: false },
-          ],
+          keys,
           data: new Instruction({
             instruction: InstructionType.Withdraw,
             [InstructionType.Withdraw]: new Uint8Array(
