@@ -7,7 +7,6 @@
   import { subscriptionPackages } from '../demo';
   import type { Package } from '../../helpers/data';
 
-  $: solMint = $tokenMap.get(WRAPPED_SOL_MINT.toBase58());
   const defaultMint = WRAPPED_SOL_MINT.toBase58();
 
   $: items = [
