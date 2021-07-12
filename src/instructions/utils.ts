@@ -17,6 +17,12 @@ import type { WalletAdapter } from '../helpers/types';
 import { WRAPPED_SOL_MINT } from '../helpers/solana';
 import { getOrCreateTokenAccount, getOrCreateSOLTokenAccount } from '../helpers/token';
 
+export interface TransactionKeys {
+  pubkey: PublicKey;
+  isSigner: boolean;
+  isWritable: boolean;
+}
+
 interface ExpressCheckoutTxParams {
   amount: number;
   buyerTokenAccount: PublicKey /** the token account used to pay for this order */;
