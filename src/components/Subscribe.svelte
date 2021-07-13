@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { Buffer } from 'buffer';
   import { onMount, onDestroy } from 'svelte';
   import { derived } from 'svelte/store';
   import { Connection, PublicKey } from '@solana/web3.js';
@@ -20,17 +21,16 @@
   import { forHumans, onInterval } from '../helpers/utils';
   import type { Package } from '../helpers/data';
   import type { Merchant } from '../helpers/layout';
+  import { SubscriptionStatus } from '../helpers/layout';
   import TrasactionResult from './TrasactionResult.svelte';
 
   export let subscriptionTimeout = 1000 * 10;
   export let clockTimeout = 1000 * 60;
   export let buyerToken: UserToken | undefined = undefined;
   export let merchant: Merchant;
-  export let subscriptionName: string;
   export let subscriptionPackage: Package;
-  export let mint: PublicKey;
 
-  const name = `${subscriptionName}:${subscriptionPackage.name}`;
+  const name = subscriptionPackage.name;
   let subscriptionPromise: Promise<void | string> | null = null;
   let subscriptionProcessing = false;
   let subscriptionResultTxId: string | undefined = undefined;
@@ -39,8 +39,8 @@
 
   const token = derived(tokenMap, ($tokenMap) => {
     if ($tokenMap) {
-      if (mint !== undefined) {
-        return $tokenMap.get(mint.toBase58()) || null;
+      if (subscriptionPackage.mint) {
+        return $tokenMap.get(subscriptionPackage.mint) || null;
       } else if (buyerToken) {
         return $tokenMap.get(buyerToken.pubkey.toBase58()) || null;
       }
@@ -72,16 +72,15 @@
 
   const fetchSubscription = (connectedWallet: Adapter) => {
     if (connectedWallet && connectedWallet.publicKey) {
-      PublicKey.createWithSeed(
-        connectedWallet.publicKey,
-        name,
+      PublicKey.findProgramAddress(
+        [connectedWallet.publicKey.toBuffer(), merchant.address.toBuffer(), Buffer.from(name)],
         new PublicKey($globalProgramId)
-      ).then((address) => {
+      ).then((pda) => {
         // update local address state
-        subscriptionAddress = address;
+        subscriptionAddress = pda[0];
         getSubscriptionByAddress({
           connection: new Connection($solanaNetwork, PROCESSED),
-          publicKey: address,
+          publicKey: pda[0],
         }).then((result) => {
           // update the subscription store with the subscription object
           if (result.error) {
@@ -111,7 +110,7 @@
     while (
       !$subscription ||
       force ||
-      ($clock && $clock.unixTimestamp > $subscription.account.period_end)
+      ($clock && $clock.unixTimestamp > $subscription.account.periodEnd)
     ) {
       fetchSubscription($adapter);
       // sleep
@@ -130,7 +129,7 @@
             buyerTokenAccount: buyerToken?.pubkey,
             connection: new Connection($solanaNetwork, FINALIZED),
             merchantAccount: merchant.address,
-            mint,
+            mint: new PublicKey(subscriptionPackage.mint),
             name,
             programOwnerAccount: new PublicKey(PROGRAM_OWNER),
             sponsorAccount: merchant.account.sponsor,
@@ -162,7 +161,7 @@
             buyerTokenAccount: buyerToken?.pubkey,
             connection: new Connection($solanaNetwork, FINALIZED),
             merchantAccount: merchant.address,
-            mint,
+            mint: new PublicKey(subscriptionPackage.mint),
             name,
             programOwnerAccount: new PublicKey(PROGRAM_OWNER),
             sponsorAccount: merchant.account.sponsor,
@@ -201,7 +200,7 @@
   };
 
   $: subscriptionCssClass = $subscription
-    ? $clock && $subscription.account.period_end > $clock.unixTimestamp
+    ? $clock && $subscription.account.periodEnd > $clock.unixTimestamp
       ? 'active'
       : 'expired'
     : '';
@@ -230,23 +229,29 @@
               </td>
             </tr>
             <tr>
+              <th> Status </th>
+              <td>
+                {SubscriptionStatus[$subscription.account.status]}
+              </td>
+            </tr>
+            <tr>
               <th> Date Joined </th>
               <td>{new Date($subscription.account.joined * 1000).toLocaleString()}</td>
             </tr>
             <tr>
               <th> Current Period Start </th>
-              <td>{new Date($subscription.account.period_start * 1000).toLocaleString()}</td>
+              <td>{new Date($subscription.account.periodStart * 1000).toLocaleString()}</td>
             </tr>
             <tr>
-              {#if $clock && $subscription.account.period_end > $clock.unixTimestamp}
+              {#if $clock && $subscription.account.periodEnd > $clock.unixTimestamp}
                 <th style="color: green"> Active Until </th>
               {:else}
                 <th style="color: red"> Ended On </th>
               {/if}
               <td>
-                {new Date($subscription.account.period_end * 1000).toLocaleString()}
+                {new Date($subscription.account.periodEnd * 1000).toLocaleString()}
                 <br /><span class="tx-sm">
-                  The {#if $clock && $subscription.account.period_end > $clock.unixTimestamp}current{:else}last{/if}
+                  The {#if $clock && $subscription.account.periodEnd > $clock.unixTimestamp}current{:else}last{/if}
                   period end date
                 </span>
               </td>

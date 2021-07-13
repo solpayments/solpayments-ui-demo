@@ -7,19 +7,21 @@
   import { subscriptionPackages } from '../demo';
   import type { Package } from '../../helpers/data';
 
-  $: solMint = $tokenMap.get(WRAPPED_SOL_MINT.toBase58());
+  const defaultMint = WRAPPED_SOL_MINT.toBase58();
 
   $: items = [
-    { duration: 60 * 10, name: 'daily', price: 0.1 },
-    { duration: 60 * 60 * 24 * 30, name: 'monthly', price: 0.2 },
-    { duration: 60 * 60 * 24 * 365, name: 'yearly', price: 2 },
+    { duration: 60 * 10, mint: defaultMint, name: 'daily', price: 0.1, trial: 0 },
+    { duration: 60 * 60 * 24 * 30, mint: defaultMint, name: 'monthly', price: 0.2, trial: 0 },
+    { duration: 60 * 60 * 24 * 365, mint: defaultMint, name: 'yearly', price: 2, trial: 0 },
   ];
 
   function add() {
     items = items.concat({
       duration: 60 * 10,
+      mint: defaultMint,
       name: '',
       price: 100000000,
+      trial: 0,
     });
   }
 
@@ -38,6 +40,9 @@
     let knownNames: string[] = [];
     for (let index = 0; index < input.length; index++) {
       const element = input[index];
+      if (element.trial && element.trial < 0) {
+        return false;
+      }
       if (!element.duration || element.duration <= 0) {
         return false;
       }
@@ -47,6 +52,9 @@
       if (!element.name || element.name === '' || knownNames.includes(element.name)) {
         return false;
       }
+      if (!element.mint) {
+        return false;
+      }
       knownNames.push(element.name);
     }
     return true;
@@ -54,7 +62,7 @@
 
   const prepareInput = (input: Package[]): Package[] => {
     return input.map((e) => {
-      const decimals = solMint ? solMint.decimals : DEFAULT_DECIMALS;
+      const decimals = $tokenMap?.get(e.mint)?.decimals || DEFAULT_DECIMALS;
       return {
         ...e,
         price: e.price * 10 ** decimals,
@@ -80,8 +88,9 @@
   <table>
     <thead>
       <th>Name</th>
+      <th>Trial Period (seconds)</th>
       <th>Duration (seconds)</th>
-      <th>Price (SOL)</th>
+      <th>Price</th>
       <td />
     </thead>
     <tbody>
@@ -92,6 +101,10 @@
             <p>&nbsp;</p>
           </td>
           <td>
+            <input name="trial" type="number" min="0" bind:value={item.trial} required={true} />
+            <p>{forHumans(item.trial)}&nbsp;</p>
+          </td>
+          <td>
             <input
               name="duration"
               type="number"
@@ -99,10 +112,23 @@
               bind:value={item.duration}
               required={true}
             />
-            <p>{forHumans(item.duration)}</p>
+            <p>{forHumans(item.duration)}&nbsp;</p>
           </td>
-          <td
-            ><input name="price" type="number" min="0" bind:value={item.price} required={true} />
+          <td>
+            <div class="row">
+              <div class="column">
+                <input name="price" type="number" min="0" bind:value={item.price} required={true} />
+              </div>
+              <div class="column">
+                <select name="mint" bind:value={item.mint} required={true}>
+                  {#if $tokenMap}
+                    {#each Array.from($tokenMap.values()) as token}
+                      <option value={token.address}>{token.symbol}</option>
+                    {/each}
+                  {/if}
+                </select>
+              </div>
+            </div>
             <p>&nbsp;</p></td
           >
           <td>

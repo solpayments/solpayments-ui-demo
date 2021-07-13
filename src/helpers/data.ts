@@ -1,8 +1,10 @@
 /** Subscription package */
 export interface Package {
   duration: number /** in seconds */;
+  mint: string;
   name: string;
   price: number;
+  trial?: number;
 }
 
 /** Subscription packages */

@@ -1,8 +1,9 @@
+import { Buffer } from 'buffer';
 import type { TransactionSignature } from '@solana/web3.js';
 import {
+  Account,
   PublicKey,
   TransactionInstruction,
-  SYSVAR_CLOCK_PUBKEY,
   SYSVAR_RENT_PUBKEY,
   SystemProgram,
 } from '@solana/web3.js';
@@ -30,17 +31,28 @@ export const subscribe = async (params: SubscribeParams): Promise<Result<Transac
 
   const programIdKey = new PublicKey(thisProgramId);
   const data = params.data || null;
-  const subscriptionKey =
-    subscriptionAddress || (await PublicKey.createWithSeed(wallet.publicKey, name, programIdKey));
+
+  let subscriptionKey: PublicKey;
+  if (subscriptionAddress) {
+    subscriptionKey = subscriptionAddress;
+  } else {
+    const subscriptionPda = await PublicKey.findProgramAddress(
+      [wallet.publicKey.toBuffer(), merchantAccount.toBuffer(), Buffer.from(name)],
+      programIdKey
+    );
+    subscriptionKey = subscriptionPda[0];
+  }
+
   const orderData: OrderSubscription = {
     subscription: subscriptionKey.toString(),
   };
   const orderId = `${name}:${new Date().valueOf()}`;
-  const orderKey = await PublicKey.createWithSeed(wallet.publicKey, orderId, programIdKey);
+  const orderAccount = new Account();
 
   const txResult = await makeCheckoutTransaction({
     ...params,
     data: JSON.stringify(orderData),
+    inputOrderAccount: orderAccount,
     orderId,
     secret: '',
   });
@@ -58,9 +70,8 @@ export const subscribe = async (params: SubscribeParams): Promise<Result<Transac
           { pubkey: wallet.publicKey, isSigner: true, isWritable: true },
           { pubkey: subscriptionKey, isSigner: false, isWritable: true },
           { pubkey: merchantAccount, isSigner: false, isWritable: false },
-          { pubkey: orderKey, isSigner: false, isWritable: false },
+          { pubkey: orderAccount.publicKey, isSigner: false, isWritable: false },
           { pubkey: SystemProgram.programId, isSigner: false, isWritable: false },
-          { pubkey: SYSVAR_CLOCK_PUBKEY, isSigner: false, isWritable: false },
           { pubkey: SYSVAR_RENT_PUBKEY, isSigner: false, isWritable: false },
         ],
         data: new Instruction({

@@ -9,7 +9,7 @@ import css from 'rollup-plugin-css-only';
 import json from '@rollup/plugin-json';
 import replace from '@rollup/plugin-replace';
 import sveltePreprocess from 'svelte-preprocess';
-import includeEnv from "svelte-environment-variables";
+import includeEnv from 'svelte-environment-variables';
 
 const production = !process.env.ROLLUP_WATCH;
 

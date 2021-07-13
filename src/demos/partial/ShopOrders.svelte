@@ -24,7 +24,7 @@
         have received from your customers.
       </p>
       <p>You can also withdraw the amounts received to your own wallet.</p>
-      <Orders merchantAddress={$merchant.address} />
+      <Orders merchant={$merchant} />
     {:else}
       <Redirect to="/shop" state={{ from: location }} />
     {/if}

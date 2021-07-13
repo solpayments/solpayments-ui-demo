@@ -3,39 +3,39 @@
   import { Connection, PublicKey } from '@solana/web3.js';
   import { transactionsMap, TxStatus } from '../stores/transaction';
   import { adapter, connected, programId as globalProgramId, solanaNetwork } from '../stores';
-  import type { UserToken } from '../stores';
-  import { withdraw } from '../instructions/withdraw';
+  import { cancel } from '../instructions/cancel_subscription';
   import { FINALIZED, PROGRAM_OWNER } from '../helpers/constants';
   import type { OrderInfo } from '../helpers/layout';
   import TrasactionResult from './TrasactionResult.svelte';
 
-  export let merchantToken: UserToken | undefined = undefined;
   export let orderInfo: OrderInfo;
-  export let subscriptionAccount: PublicKey | undefined = undefined;
-  let withdrawPromise: Promise<void | string> | null = null;
-  let withdrawProcessing = false;
-  let withdrawResultTxId: string | undefined = undefined;
+  export let subscriptionAccount: PublicKey | undefined;
+  let cancelSubscriptionPromise: Promise<void | string> | null = null;
+  let cancelSubscriptionProcessing = false;
+  let cancelSubscriptionResultTxId: string | undefined = undefined;
   let hasError = false;
 
   // used to ensure this store subscription does not cause mem leak
   const unsubscribe = transactionsMap.subscribe((value) => {
-    if (value && withdrawResultTxId && value.get(withdrawResultTxId)?.status != TxStatus.Unknown) {
-      withdrawPromise = null;
+    if (
+      value &&
+      cancelSubscriptionResultTxId &&
+      value.get(cancelSubscriptionResultTxId)?.status != TxStatus.Unknown
+    ) {
+      cancelSubscriptionPromise = null;
     }
   });
 
-  const handleWithdrawPromise = () => {
+  const handleCancelPromise = () => {
     hasError = false;
-    withdrawProcessing = true;
-    withdrawResultTxId = undefined;
-    withdrawPromise =
-      $adapter && $adapter.publicKey && orderInfo
-        ? withdraw({
+    cancelSubscriptionProcessing = true;
+    cancelSubscriptionResultTxId = undefined;
+    cancelSubscriptionPromise =
+      $adapter && $adapter.publicKey && orderInfo && subscriptionAccount
+        ? cancel({
             accountToReceiveSolRefund: new PublicKey(PROGRAM_OWNER),
-            closeOrderAccount: 0,
             connection: new Connection($solanaNetwork, FINALIZED),
             merchantAccount: orderInfo.account.data.merchant,
-            merchantTokenAccount: merchantToken?.pubkey,
             mint: orderInfo.account.data.mint,
             orderAccount: orderInfo.pubkey,
             orderTokenAccount: orderInfo.account.data.token,
@@ -47,32 +47,27 @@
               if (result.error) {
                 throw result.error;
               }
-              withdrawResultTxId = result.value;
+              cancelSubscriptionResultTxId = result.value;
               return result.value;
             })
             .finally(() => {
-              withdrawProcessing = false;
+              cancelSubscriptionProcessing = false;
             })
         : null;
   };
 
   $: transactionDone =
-    withdrawResultTxId != undefined &&
-    $transactionsMap.get(withdrawResultTxId)?.status == TxStatus.Success;
+    cancelSubscriptionResultTxId != undefined &&
+    $transactionsMap.get(cancelSubscriptionResultTxId)?.status == TxStatus.Success;
   $: processing =
-    (withdrawProcessing || withdrawResultTxId != undefined) && !transactionDone && !hasError;
+    (cancelSubscriptionProcessing || cancelSubscriptionResultTxId != undefined) &&
+    !transactionDone &&
+    !hasError;
 
   /** ensure you can retry after an error */
   const onError = () => {
     hasError = true;
     return null;
-  };
-
-  const prettyError = (error: Error) => {
-    if (error.message.includes('Error processing Instruction 2: custom program error: 0x1')) {
-      return 'Cannot withdraw during trial period';
-    }
-    return error.message;
   };
 
   onDestroy(unsubscribe);
@@ -82,27 +77,27 @@
   {#if $connected && orderInfo}
     <div class="row">
       <div class="column">
-        <button on:click={() => handleWithdrawPromise()} disabled={processing || transactionDone}>
+        <button on:click={() => handleCancelPromise()} disabled={processing || transactionDone}>
           {#if processing}
             Processing
           {:else if transactionDone}
-            Withdrawal Successful
+            Cancel Successful
           {:else}
-            Withdraw
+            Cancel Subscription
           {/if}
         </button>
       </div>
     </div>
 
-    {#if withdrawPromise}
-      {#await withdrawPromise}
-        <p>withdrawing</p>
+    {#if cancelSubscriptionPromise}
+      {#await cancelSubscriptionPromise}
+        <p>Cancelling Subscription</p>
       {:then txId}
         <TrasactionResult {txId} />
       {:catch error}
         <!-- TODO: find better way to call this func, as this way is frowned upon in svelte-world-->
         {onError() || ''}
-        <p style="color: red">{prettyError(error)}</p>
+        <p style="color: red">{error}</p>
       {/await}
     {/if}
   {/if}

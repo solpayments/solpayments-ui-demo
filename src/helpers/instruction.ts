@@ -3,6 +3,7 @@ import { Layout } from './borsh';
 import type { Dictionary } from './types';
 import {
   AMOUNT,
+  CLOSE_ORDER_ACCOUNT,
   DATA,
   ENUM,
   FEE,
@@ -15,15 +16,18 @@ import {
   SEED,
   STRING,
   STRUCT,
+  U8,
   U64,
 } from './constants';
 
 export enum InstructionType {
   RegisterMerchant = 'RegisterMerchant',
   ExpressCheckout = 'ExpressCheckout',
+  ChainCheckout = 'ChainCheckout',
   Withdraw = 'Withdraw',
   Subscribe = 'Subscribe',
   RenewSubscription = 'RenewSubscription',
+  CancelSubscription = 'CancelSubscription',
 }
 
 export class Instruction extends Layout {
@@ -43,9 +47,11 @@ export class Instruction extends Layout {
           values: [
             [InstructionType.RegisterMerchant, [len]],
             [InstructionType.ExpressCheckout, [len]],
+            [InstructionType.ChainCheckout, [len]],
             [InstructionType.Withdraw, [len]],
             [InstructionType.Subscribe, [len]],
             [InstructionType.RenewSubscription, [len]],
+            [InstructionType.CancelSubscription, [len]],
           ],
         },
       ],
@@ -84,12 +90,25 @@ export class InstructionData extends Layout {
         },
       ],
     ]),
+    [InstructionType.ChainCheckout]: new Map([
+      [
+        InstructionData,
+        {
+          kind: STRUCT,
+          fields: [
+            [AMOUNT, U64],
+            ['order_items', STRING],
+            [DATA, { kind: OPTION, type: STRING }],
+          ],
+        },
+      ],
+    ]),
     [InstructionType.Withdraw]: new Map([
       [
         InstructionData,
         {
           kind: STRUCT,
-          fields: [],
+          fields: [[CLOSE_ORDER_ACCOUNT, U8]],
         },
       ],
     ]),
@@ -111,6 +130,15 @@ export class InstructionData extends Layout {
         {
           kind: STRUCT,
           fields: [[QUANTITY, U64]],
+        },
+      ],
+    ]),
+    [InstructionType.CancelSubscription]: new Map([
+      [
+        InstructionData,
+        {
+          kind: STRUCT,
+          fields: [],
         },
       ],
     ]),

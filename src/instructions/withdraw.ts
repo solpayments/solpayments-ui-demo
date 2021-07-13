@@ -1,12 +1,6 @@
 import { Buffer } from 'buffer';
 import type { Connection, TransactionSignature } from '@solana/web3.js';
-import {
-  Account,
-  PublicKey,
-  Transaction,
-  TransactionInstruction,
-  SYSVAR_CLOCK_PUBKEY,
-} from '@solana/web3.js';
+import { Account, PublicKey, Transaction, TransactionInstruction } from '@solana/web3.js';
 import { PDA_SEED } from '../helpers/constants';
 import { TOKEN_PROGRAM_ID, WRAPPED_SOL_MINT } from '../helpers/solana';
 import { getOrCreateTokenAccount, getOrCreateSOLTokenAccount } from '../helpers/token';
@@ -18,26 +12,33 @@ import {
   signAndSendTransaction,
 } from '../helpers/transaction';
 import { Instruction, InstructionData, InstructionType } from '../helpers/instruction';
+import type { TransactionKeys } from './utils';
 
 interface WithdrawParams {
+  accountToReceiveSolRefund: PublicKey;
+  closeOrderAccount: 0 | 1;
   connection: Connection;
   merchantAccount: PublicKey;
   merchantTokenAccount?: PublicKey;
   mint: PublicKey;
   orderAccount: PublicKey;
   orderTokenAccount: PublicKey;
+  subscriptionAccount?: PublicKey;
   thisProgramId: string;
   wallet: WalletAdapter;
 }
 
 export const withdraw = async (params: WithdrawParams): Promise<Result<TransactionSignature>> => {
   const {
+    accountToReceiveSolRefund,
+    closeOrderAccount,
     connection,
     merchantAccount,
     merchantTokenAccount,
     mint,
     orderAccount,
     orderTokenAccount,
+    subscriptionAccount,
     thisProgramId,
     wallet,
   } = params;
@@ -85,24 +86,32 @@ export const withdraw = async (params: WithdrawParams): Promise<Result<Transacti
 
   // add main instruction
   if (tokenAccount !== undefined) {
+    const keys: TransactionKeys[] = [
+      { pubkey: wallet.publicKey, isSigner: true, isWritable: true },
+      { pubkey: orderAccount, isSigner: false, isWritable: true },
+      { pubkey: merchantAccount, isSigner: false, isWritable: false },
+      { pubkey: orderTokenAccount, isSigner: false, isWritable: true },
+      { pubkey: tokenAccount, isSigner: false, isWritable: true },
+      { pubkey: accountToReceiveSolRefund, isSigner: false, isWritable: true },
+      { pubkey: pda[0], isSigner: false, isWritable: false },
+      { pubkey: TOKEN_PROGRAM_ID, isSigner: false, isWritable: false },
+    ];
+
+    if (subscriptionAccount) {
+      keys.push({ pubkey: subscriptionAccount, isSigner: false, isWritable: false });
+    }
+
     try {
       transaction.add(
         new TransactionInstruction({
           programId: programIdKey,
-          keys: [
-            { pubkey: wallet.publicKey, isSigner: true, isWritable: true },
-            { pubkey: orderAccount, isSigner: false, isWritable: true },
-            { pubkey: merchantAccount, isSigner: false, isWritable: false },
-            { pubkey: orderTokenAccount, isSigner: false, isWritable: true },
-            { pubkey: tokenAccount, isSigner: false, isWritable: true },
-            { pubkey: pda[0], isSigner: false, isWritable: false },
-            { pubkey: TOKEN_PROGRAM_ID, isSigner: false, isWritable: false },
-            { pubkey: SYSVAR_CLOCK_PUBKEY, isSigner: false, isWritable: false },
-          ],
+          keys,
           data: new Instruction({
             instruction: InstructionType.Withdraw,
             [InstructionType.Withdraw]: new Uint8Array(
-              new InstructionData(InstructionType.Withdraw, {}).encode()
+              new InstructionData(InstructionType.Withdraw, {
+                close_order_account: closeOrderAccount,
+              }).encode()
             ),
           }).encode(),
         })
