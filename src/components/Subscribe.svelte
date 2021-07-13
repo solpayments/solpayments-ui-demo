@@ -21,6 +21,7 @@
   import { forHumans, onInterval } from '../helpers/utils';
   import type { Package } from '../helpers/data';
   import type { Merchant } from '../helpers/layout';
+  import { SubscriptionStatus } from '../helpers/layout';
   import TrasactionResult from './TrasactionResult.svelte';
 
   export let subscriptionTimeout = 1000 * 10;
@@ -225,6 +226,12 @@
               <th> Address </th>
               <td>
                 {$subscription.address}
+              </td>
+            </tr>
+            <tr>
+              <th> Status </th>
+              <td>
+                {SubscriptionStatus[$subscription.account.status]}
               </td>
             </tr>
             <tr>
