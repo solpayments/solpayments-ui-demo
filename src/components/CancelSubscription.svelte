@@ -9,7 +9,7 @@
   import TrasactionResult from './TrasactionResult.svelte';
 
   export let orderInfo: OrderInfo;
-  export let subscriptionAccount: PublicKey;
+  export let subscriptionAccount: PublicKey | undefined;
   let cancelSubscriptionPromise: Promise<void | string> | null = null;
   let cancelSubscriptionProcessing = false;
   let cancelSubscriptionResultTxId: string | undefined = undefined;
@@ -31,7 +31,7 @@
     cancelSubscriptionProcessing = true;
     cancelSubscriptionResultTxId = undefined;
     cancelSubscriptionPromise =
-      $adapter && $adapter.publicKey && orderInfo
+      $adapter && $adapter.publicKey && orderInfo && subscriptionAccount
         ? cancel({
             accountToReceiveSolRefund: new PublicKey(PROGRAM_OWNER),
             connection: new Connection($solanaNetwork, FINALIZED),
