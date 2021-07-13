@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { memoize } from 'lodash';
   import { onMount } from 'svelte';
   import { Connection, PublicKey } from '@solana/web3.js';
   import {
@@ -16,6 +17,7 @@
   import type { Merchant, OrderInfo } from '../helpers/layout';
   import { abbreviateAddress, onInterval, sleep } from '../helpers/utils';
   import Withdraw from './Withdraw.svelte';
+  import CancelSubscription from './CancelSubscription.svelte';
 
   let ordersPromise: Promise<any> | null = null;
   export let ordersTimeout = 1000 * 30;
@@ -46,13 +48,13 @@
     }
   };
 
-  const getSubscriptionAccount = (orderInfo: OrderInfo) => {
+  const getSubscriptionAccount = memoize((orderInfo: OrderInfo) => {
     if (merchant.account.discriminator === Discriminator.MerchantSubscriptionWithTrial) {
       const orderData: OrderSubscription = JSON.parse(orderInfo.account.data.data);
       return new PublicKey(orderData.subscription);
     }
     return undefined;
-  };
+  });
 
   $: processing = ordersPromise !== null;
 
@@ -111,6 +113,13 @@
                     orderInfo={orderAccount}
                     subscriptionAccount={getSubscriptionAccount(orderAccount)}
                   />
+                  {#if (getSubscriptionAccount(orderAccount))}
+                  <hr />
+                  <CancelSubscription
+                    orderInfo={orderAccount}
+                    subscriptionAccount={getSubscriptionAccount(orderAccount)}
+                  />
+                  {/if}
                 {/if}
               </td>
             </tr>
